@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -79,7 +78,13 @@ export const Pacientes = () => {
         return;
       }
 
-      setPatients(data || []);
+      // Ensure proper type conversion for status field
+      const typedPatients = (data || []).map(patient => ({
+        ...patient,
+        status: patient.status as 'ativo' | 'inativo' | 'pendente'
+      }));
+
+      setPatients(typedPatients);
     } catch (error) {
       console.error('Erro inesperado:', error);
       toast({
@@ -114,7 +119,6 @@ export const Pacientes = () => {
         description: "O paciente foi removido com sucesso.",
       });
 
-      // Atualizar a lista de pacientes
       setPatients(patients.filter(p => p.id !== patientId));
     } catch (error) {
       console.error('Erro inesperado:', error);
@@ -150,7 +154,6 @@ export const Pacientes = () => {
         description: `Paciente ${newStatus === 'ativo' ? 'ativado' : 'inativado'} com sucesso.`,
       });
 
-      // Atualizar a lista de pacientes
       setPatients(patients.map(p => 
         p.id === patientId ? { ...p, status: newStatus as 'ativo' | 'inativo' | 'pendente' } : p
       ));

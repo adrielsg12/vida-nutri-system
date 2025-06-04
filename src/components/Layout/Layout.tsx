@@ -12,11 +12,10 @@ export const Layout = ({ children }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, signOut } = useAuth();
 
-  // Dados do usuário logado
   const nutricionista = {
     nome: user?.user_metadata?.nome_completo || user?.email || 'Usuário',
     email: user?.email || '',
-    crn: 'CRN-3 12345', // Pode vir do perfil no futuro
+    crn: 'CRN-3 12345',
   };
 
   return (
@@ -30,7 +29,7 @@ export const Layout = ({ children }: LayoutProps) => {
           onSignOut={signOut}
         />
         
-        <main className="px-4 lg:px-6 py-4">
+        <main className="p-6">
           {children}
         </main>
       </div>

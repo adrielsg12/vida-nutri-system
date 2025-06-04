@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Bell, Menu, User, Settings } from 'lucide-react';
+import { Bell, Menu, User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -16,11 +16,12 @@ interface HeaderProps {
   nutricionista: {
     nome: string;
     email: string;
-    foto?: string;
+    crn?: string;
   };
+  onSignOut: () => Promise<void>;
 }
 
-export const Header = ({ onMenuClick, nutricionista }: HeaderProps) => {
+export const Header = ({ onMenuClick, nutricionista, onSignOut }: HeaderProps) => {
   return (
     <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4 flex items-center justify-between">
       <div className="flex items-center gap-4">
@@ -63,7 +64,11 @@ export const Header = ({ onMenuClick, nutricionista }: HeaderProps) => {
               <Settings className="mr-2 h-4 w-4" />
               Configurações
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-600">
+            <DropdownMenuItem 
+              className="text-red-600"
+              onClick={onSignOut}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
               Sair
             </DropdownMenuItem>
           </DropdownMenuContent>

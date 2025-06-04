@@ -9,6 +9,8 @@ import { Dashboard } from "@/pages/Dashboard";
 import { Pacientes } from "@/pages/Pacientes";
 import { Consultas } from "@/pages/Consultas";
 import { Financeiro } from "@/pages/Financeiro";
+import { Comunicacao } from "@/pages/Comunicacao";
+import { Configuracoes } from "@/pages/Configuracoes";
 import { Auth } from "@/pages/Auth";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -66,20 +68,14 @@ const App = () => (
             <Route path="/comunicacao" element={
               <ProtectedRoute>
                 <Layout>
-                  <div className="p-8 text-center">
-                    <h1 className="text-2xl font-bold">Comunicação</h1>
-                    <p className="text-gray-600 mt-2">Em desenvolvimento...</p>
-                  </div>
+                  <Comunicacao />
                 </Layout>
               </ProtectedRoute>
             } />
             <Route path="/configuracoes" element={
               <ProtectedRoute>
                 <Layout>
-                  <div className="p-8 text-center">
-                    <h1 className="text-2xl font-bold">Configurações</h1>
-                    <p className="text-gray-600 mt-2">Em desenvolvimento...</p>
-                  </div>
+                  <Configuracoes />
                 </Layout>
               </ProtectedRoute>
             } />
