@@ -9,7 +9,268 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      consultas: {
+        Row: {
+          created_at: string | null
+          data_hora: string
+          id: string
+          link_online: string | null
+          nutricionista_id: string
+          observacoes: string | null
+          paciente_id: string
+          status: string | null
+          tipo: string | null
+          updated_at: string | null
+          valor: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_hora: string
+          id?: string
+          link_online?: string | null
+          nutricionista_id: string
+          observacoes?: string | null
+          paciente_id: string
+          status?: string | null
+          tipo?: string | null
+          updated_at?: string | null
+          valor?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          data_hora?: string
+          id?: string
+          link_online?: string | null
+          nutricionista_id?: string
+          observacoes?: string | null
+          paciente_id?: string
+          status?: string | null
+          tipo?: string | null
+          updated_at?: string | null
+          valor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultas_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pacientes: {
+        Row: {
+          alergias_intolerancia: string | null
+          anotacoes_privadas: string | null
+          cpf: string | null
+          created_at: string | null
+          data_nascimento: string | null
+          email: string | null
+          endereco: string | null
+          habitos_alimentares: string | null
+          historico_clinico: string | null
+          id: string
+          medicamentos: string | null
+          nome: string
+          nutricionista_id: string
+          objetivo: string | null
+          profissao: string | null
+          rotina: string | null
+          sexo: string | null
+          status: string | null
+          telefone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          alergias_intolerancia?: string | null
+          anotacoes_privadas?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          data_nascimento?: string | null
+          email?: string | null
+          endereco?: string | null
+          habitos_alimentares?: string | null
+          historico_clinico?: string | null
+          id?: string
+          medicamentos?: string | null
+          nome: string
+          nutricionista_id: string
+          objetivo?: string | null
+          profissao?: string | null
+          rotina?: string | null
+          sexo?: string | null
+          status?: string | null
+          telefone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          alergias_intolerancia?: string | null
+          anotacoes_privadas?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          data_nascimento?: string | null
+          email?: string | null
+          endereco?: string | null
+          habitos_alimentares?: string | null
+          historico_clinico?: string | null
+          id?: string
+          medicamentos?: string | null
+          nome?: string
+          nutricionista_id?: string
+          objetivo?: string | null
+          profissao?: string | null
+          rotina?: string | null
+          sexo?: string | null
+          status?: string | null
+          telefone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      pagamentos: {
+        Row: {
+          consulta_id: string | null
+          created_at: string | null
+          data_pagamento: string
+          forma_pagamento: string
+          id: string
+          nutricionista_id: string
+          observacoes: string | null
+          paciente_id: string
+          status: string | null
+          valor: number
+        }
+        Insert: {
+          consulta_id?: string | null
+          created_at?: string | null
+          data_pagamento: string
+          forma_pagamento: string
+          id?: string
+          nutricionista_id: string
+          observacoes?: string | null
+          paciente_id: string
+          status?: string | null
+          valor: number
+        }
+        Update: {
+          consulta_id?: string | null
+          created_at?: string | null
+          data_pagamento?: string
+          forma_pagamento?: string
+          id?: string
+          nutricionista_id?: string
+          observacoes?: string | null
+          paciente_id?: string
+          status?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagamentos_consulta_id_fkey"
+            columns: ["consulta_id"]
+            isOneToOne: false
+            referencedRelation: "consultas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagamentos_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planos_alimentares: {
+        Row: {
+          created_at: string | null
+          data_fim: string | null
+          data_inicio: string | null
+          descricao: string | null
+          id: string
+          nutricionista_id: string
+          paciente_id: string
+          plano_json: Json | null
+          status: string | null
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          id?: string
+          nutricionista_id: string
+          paciente_id: string
+          plano_json?: Json | null
+          status?: string | null
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          id?: string
+          nutricionista_id?: string
+          paciente_id?: string
+          plano_json?: Json | null
+          status?: string | null
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planos_alimentares_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          cidade: string | null
+          clinica: string | null
+          created_at: string | null
+          crn: string | null
+          estado: string | null
+          id: string
+          logotipo_url: string | null
+          nome_completo: string
+          telefone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cidade?: string | null
+          clinica?: string | null
+          created_at?: string | null
+          crn?: string | null
+          estado?: string | null
+          id: string
+          logotipo_url?: string | null
+          nome_completo: string
+          telefone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cidade?: string | null
+          clinica?: string | null
+          created_at?: string | null
+          crn?: string | null
+          estado?: string | null
+          id?: string
+          logotipo_url?: string | null
+          nome_completo?: string
+          telefone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

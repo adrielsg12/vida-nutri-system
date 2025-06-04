@@ -9,30 +9,85 @@ import { Dashboard } from "@/pages/Dashboard";
 import { Pacientes } from "@/pages/Pacientes";
 import { Consultas } from "@/pages/Consultas";
 import { Financeiro } from "@/pages/Financeiro";
+import { Auth } from "@/pages/Auth";
+import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Layout>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/pacientes" element={<Pacientes />} />
-            <Route path="/consultas" element={<Consultas />} />
-            <Route path="/planos" element={<div className="p-8 text-center"><h1 className="text-2xl font-bold">Planos Alimentares</h1><p className="text-gray-600 mt-2">Em desenvolvimento...</p></div>} />
-            <Route path="/financeiro" element={<Financeiro />} />
-            <Route path="/comunicacao" element={<div className="p-8 text-center"><h1 className="text-2xl font-bold">Comunicação</h1><p className="text-gray-600 mt-2">Em desenvolvimento...</p></div>} />
-            <Route path="/configuracoes" element={<div className="p-8 text-center"><h1 className="text-2xl font-bold">Configurações</h1><p className="text-gray-600 mt-2">Em desenvolvimento...</p></div>} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/pacientes" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Pacientes />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/consultas" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Consultas />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/planos" element={
+              <ProtectedRoute>
+                <Layout>
+                  <div className="p-8 text-center">
+                    <h1 className="text-2xl font-bold">Planos Alimentares</h1>
+                    <p className="text-gray-600 mt-2">Em desenvolvimento...</p>
+                  </div>
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/financeiro" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Financeiro />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/comunicacao" element={
+              <ProtectedRoute>
+                <Layout>
+                  <div className="p-8 text-center">
+                    <h1 className="text-2xl font-bold">Comunicação</h1>
+                    <p className="text-gray-600 mt-2">Em desenvolvimento...</p>
+                  </div>
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/configuracoes" element={
+              <ProtectedRoute>
+                <Layout>
+                  <div className="p-8 text-center">
+                    <h1 className="text-2xl font-bold">Configurações</h1>
+                    <p className="text-gray-600 mt-2">Em desenvolvimento...</p>
+                  </div>
+                </Layout>
+              </ProtectedRoute>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </Layout>
-      </BrowserRouter>
-    </TooltipProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
