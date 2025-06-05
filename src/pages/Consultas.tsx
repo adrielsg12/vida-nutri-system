@@ -51,7 +51,14 @@ export const Consultas = () => {
         .order('data_hora', { ascending: true });
 
       if (error) throw error;
-      setConsultas(data || []);
+      
+      // Type cast the status to ensure it matches our interface
+      const consultasWithTypedStatus = (data || []).map(consulta => ({
+        ...consulta,
+        status: consulta.status as 'agendada' | 'finalizada' | 'cancelada'
+      }));
+      
+      setConsultas(consultasWithTypedStatus);
     } catch (error) {
       console.error('Erro ao carregar consultas:', error);
       toast({

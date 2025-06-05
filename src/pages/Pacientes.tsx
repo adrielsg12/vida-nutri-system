@@ -29,7 +29,7 @@ interface Paciente {
 export const Pacientes = () => {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [selectedPaciente, setSelectedPaciente] = useState<Paciente | null>(null);
+  const [selectedPacienteId, setSelectedPacienteId] = useState<string | null>(null);
   const [showFicha, setShowFicha] = useState(false);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -69,8 +69,8 @@ export const Pacientes = () => {
     });
   };
 
-  const handleVerFicha = (paciente: Paciente) => {
-    setSelectedPaciente(paciente);
+  const handleVerFicha = (pacienteId: string) => {
+    setSelectedPacienteId(pacienteId);
     setShowFicha(true);
   };
 
@@ -148,7 +148,7 @@ export const Pacientes = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleVerFicha(paciente)}
+                        onClick={() => handleVerFicha(paciente.id)}
                         className="flex items-center gap-1"
                       >
                         <Eye className="h-3 w-3" />
@@ -171,15 +171,15 @@ export const Pacientes = () => {
         />
       )}
 
-      {showFicha && selectedPaciente && (
+      {showFicha && selectedPacienteId && (
         <FichaPacienteDialog
           open={showFicha}
           onClose={() => {
             setShowFicha(false);
-            setSelectedPaciente(null);
+            setSelectedPacienteId(null);
           }}
-          onUpdate={fetchPacientes}
-          selectedPaciente={selectedPaciente}
+          patientId={selectedPacienteId}
+          onSuccess={fetchPacientes}
         />
       )}
     </div>
