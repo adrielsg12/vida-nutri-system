@@ -1,7 +1,6 @@
 
-import React, { useState } from 'react';
-import { Header } from './Header';
-import { Sidebar } from './Sidebar';
+import React from 'react';
+import { TopNavigation } from './TopNavigation';
 import { useAuth } from '@/hooks/useAuth';
 
 interface LayoutProps {
@@ -9,7 +8,6 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children }: LayoutProps) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, signOut } = useAuth();
 
   const nutricionista = {
@@ -19,20 +17,15 @@ export const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="min-h-screen bg-gray-50">
+      <TopNavigation 
+        nutricionista={nutricionista}
+        onSignOut={signOut}
+      />
       
-      <div className="flex-1 lg:pl-64">
-        <Header 
-          onMenuClick={() => setSidebarOpen(true)} 
-          nutricionista={nutricionista}
-          onSignOut={signOut}
-        />
-        
-        <main className="p-4 lg:p-6">
-          {children}
-        </main>
-      </div>
+      <main className="w-full">
+        {children}
+      </main>
     </div>
   );
 };

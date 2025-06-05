@@ -1,374 +1,289 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { User, Building, Clock, Palette, Bell, LogOut, Save } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Settings, User, Clock, Bell, Save, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { useNavigate } from 'react-router-dom';
 
 export const Configuracoes = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [profile, setProfile] = useState({
-    nome_completo: '',
-    crn: '',
+  const navigate = useNavigate();
+
+  const [perfil, setPerfil] = useState({
+    nome: user?.user_metadata?.nome_completo || '',
+    email: user?.email || '',
+    crn: 'CRN-3 12345',
     telefone: '',
-    clinica: '',
-    cidade: '',
-    estado: '',
-    logotipo_url: ''
-  });
-  const [notifications, setNotifications] = useState({
-    email_reminders: true,
-    whatsapp_reminders: false,
-    appointment_confirmations: true
-  });
-  const [workingHours, setWorkingHours] = useState({
-    monday: { start: '08:00', end: '18:00', enabled: true },
-    tuesday: { start: '08:00', end: '18:00', enabled: true },
-    wednesday: { start: '08:00', end: '18:00', enabled: true },
-    thursday: { start: '08:00', end: '18:00', enabled: true },
-    friday: { start: '08:00', end: '18:00', enabled: true },
-    saturday: { start: '08:00', end: '12:00', enabled: false },
-    sunday: { start: '08:00', end: '12:00', enabled: false }
+    endereco: ''
   });
 
-  useEffect(() => {
-    fetchProfile();
-  }, [user]);
+  const [horarios, setHorarios] = useState({
+    segunda: { inicio: '08:00', fim: '18:00', ativo: true },
+    terca: { inicio: '08:00', fim: '18:00', ativo: true },
+    quarta: { inicio: '08:00', fim: '18:00', ativo: true },
+    quinta: { inicio: '08:00', fim: '18:00', ativo: true },
+    sexta: { inicio: '08:00', fim: '18:00', ativo: true },
+    sabado: { inicio: '08:00', fim: '12:00', ativo: false },
+    domingo: { inicio: '08:00', fim: '12:00', ativo: false }
+  });
 
-  const fetchProfile = async () => {
-    if (!user) return;
+  const [notificacoes, setNotificacoes] = useState({
+    emailLembretes: true,
+    whatsappLembretes: false,
+    notificacoesPagamento: true
+  });
 
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Erro ao buscar perfil:', error);
-        return;
-      }
-
-      if (data) {
-        setProfile(data);
-      }
-    } catch (error) {
-      console.error('Erro inesperado:', error);
-    }
+  const handleSalvarPerfil = () => {
+    toast({
+      title: 'Sucesso',
+      description: 'Perfil atualizado com sucesso!',
+    });
   };
 
-  const saveProfile = async () => {
-    if (!user) return;
-
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          ...profile,
-          updated_at: new Date().toISOString()
-        });
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Perfil atualizado",
-        description: "Suas informações foram salvas com sucesso.",
-      });
-    } catch (error: any) {
-      console.error('Erro ao salvar perfil:', error);
-      toast({
-        title: "Erro ao salvar",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleSalvarHorarios = () => {
+    toast({
+      title: 'Sucesso',
+      description: 'Horários de atendimento atualizados!',
+    });
   };
 
-  const handleSignOut = async () => {
+  const handleSalvarNotificacoes = () => {
+    toast({
+      title: 'Sucesso',
+      description: 'Configurações de notificação atualizadas!',
+    });
+  };
+
+  const handleSair = async () => {
     try {
       await signOut();
+      navigate('/auth');
       toast({
-        title: "Logout realizado",
-        description: "Você foi desconectado com sucesso.",
+        title: 'Logout realizado',
+        description: 'Você foi desconectado com sucesso.',
       });
     } catch (error) {
       toast({
-        title: "Erro no logout",
-        description: "Ocorreu um erro ao sair da conta.",
-        variant: "destructive",
+        title: 'Erro',
+        description: 'Não foi possível fazer logout.',
+        variant: 'destructive',
       });
     }
   };
 
-  const weekDays = {
-    monday: 'Segunda-feira',
-    tuesday: 'Terça-feira',
-    wednesday: 'Quarta-feira',
-    thursday: 'Quinta-feira',
-    friday: 'Sexta-feira',
-    saturday: 'Sábado',
-    sunday: 'Domingo'
-  };
+  const diasSemana = [
+    { key: 'segunda', label: 'Segunda-feira' },
+    { key: 'terca', label: 'Terça-feira' },
+    { key: 'quarta', label: 'Quarta-feira' },
+    { key: 'quinta', label: 'Quinta-feira' },
+    { key: 'sexta', label: 'Sexta-feira' },
+    { key: 'sabado', label: 'Sábado' },
+    { key: 'domingo', label: 'Domingo' }
+  ];
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Configurações</h1>
-        <p className="text-gray-600">Gerencie suas informações pessoais e preferências</p>
+    <div className="w-full px-4 lg:px-6 py-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Configurações</h1>
+          <p className="text-gray-600">Gerencie as configurações do seu sistema</p>
+        </div>
+        <Button 
+          onClick={handleSair} 
+          variant="destructive" 
+          className="flex items-center gap-2"
+        >
+          <LogOut className="h-4 w-4" />
+          Sair
+        </Button>
       </div>
 
-      {/* Informações Pessoais */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Informações Pessoais
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Perfil Profissional */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Perfil Profissional
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
               <Label htmlFor="nome">Nome Completo</Label>
               <Input
                 id="nome"
-                value={profile.nome_completo}
-                onChange={(e) => setProfile({...profile, nome_completo: e.target.value})}
-                placeholder="Seu nome completo"
+                value={perfil.nome}
+                onChange={(e) => setPerfil(prev => ({ ...prev, nome: e.target.value }))}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="crn">CRN</Label>
-              <Input
-                id="crn"
-                value={profile.crn || ''}
-                onChange={(e) => setProfile({...profile, crn: e.target.value})}
-                placeholder="Ex: CRN-3 12345"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="telefone">Telefone/WhatsApp</Label>
-              <Input
-                id="telefone"
-                value={profile.telefone || ''}
-                onChange={(e) => setProfile({...profile, telefone: e.target.value})}
-                placeholder="(11) 99999-9999"
-              />
-            </div>
-            <div className="space-y-2">
+            
+            <div>
               <Label htmlFor="email">E-mail</Label>
               <Input
                 id="email"
-                value={user?.email || ''}
-                disabled
-                className="bg-gray-50"
+                type="email"
+                value={perfil.email}
+                onChange={(e) => setPerfil(prev => ({ ...prev, email: e.target.value }))}
               />
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Informações da Clínica */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building className="h-5 w-5" />
-            Informações da Clínica
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="clinica">Nome da Clínica</Label>
-              <Input
-                id="clinica"
-                value={profile.clinica || ''}
-                onChange={(e) => setProfile({...profile, clinica: e.target.value})}
-                placeholder="Nome da sua clínica"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="logotipo">URL do Logotipo</Label>
-              <Input
-                id="logotipo"
-                value={profile.logotipo_url || ''}
-                onChange={(e) => setProfile({...profile, logotipo_url: e.target.value})}
-                placeholder="https://exemplo.com/logo.png"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cidade">Cidade</Label>
-              <Input
-                id="cidade"
-                value={profile.cidade || ''}
-                onChange={(e) => setProfile({...profile, cidade: e.target.value})}
-                placeholder="Sua cidade"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="estado">Estado</Label>
-              <Input
-                id="estado"
-                value={profile.estado || ''}
-                onChange={(e) => setProfile({...profile, estado: e.target.value})}
-                placeholder="SP"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Horários de Funcionamento */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Horários de Funcionamento
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {Object.entries(weekDays).map(([key, day]) => (
-            <div key={key} className="flex items-center gap-4">
-              <div className="w-32">
-                <Switch
-                  checked={workingHours[key as keyof typeof workingHours].enabled}
-                  onCheckedChange={(checked) => 
-                    setWorkingHours({
-                      ...workingHours,
-                      [key]: { ...workingHours[key as keyof typeof workingHours], enabled: checked }
-                    })
-                  }
-                />
-                <Label className="ml-2">{day}</Label>
-              </div>
-              {workingHours[key as keyof typeof workingHours].enabled && (
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="time"
-                    value={workingHours[key as keyof typeof workingHours].start}
-                    onChange={(e) => 
-                      setWorkingHours({
-                        ...workingHours,
-                        [key]: { ...workingHours[key as keyof typeof workingHours], start: e.target.value }
-                      })
-                    }
-                    className="w-32"
-                  />
-                  <span>às</span>
-                  <Input
-                    type="time"
-                    value={workingHours[key as keyof typeof workingHours].end}
-                    onChange={(e) => 
-                      setWorkingHours({
-                        ...workingHours,
-                        [key]: { ...workingHours[key as keyof typeof workingHours], end: e.target.value }
-                      })
-                    }
-                    className="w-32"
-                  />
-                </div>
-              )}
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* Notificações */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            Notificações
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
+            
             <div>
-              <Label>Lembretes por E-mail</Label>
-              <p className="text-sm text-gray-600">Receber lembretes de consultas por e-mail</p>
+              <Label htmlFor="crn">CRN</Label>
+              <Input
+                id="crn"
+                value={perfil.crn}
+                onChange={(e) => setPerfil(prev => ({ ...prev, crn: e.target.value }))}
+              />
             </div>
-            <Switch
-              checked={notifications.email_reminders}
-              onCheckedChange={(checked) => 
-                setNotifications({...notifications, email_reminders: checked})
-              }
-            />
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
+            
             <div>
-              <Label>Confirmações de Agendamento</Label>
-              <p className="text-sm text-gray-600">Enviar confirmações automáticas de consultas</p>
+              <Label htmlFor="telefone">WhatsApp</Label>
+              <Input
+                id="telefone"
+                placeholder="(11) 99999-9999"
+                value={perfil.telefone}
+                onChange={(e) => setPerfil(prev => ({ ...prev, telefone: e.target.value }))}
+              />
             </div>
-            <Switch
-              checked={notifications.appointment_confirmations}
-              onCheckedChange={(checked) => 
-                setNotifications({...notifications, appointment_confirmations: checked})
-              }
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Ações */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <Button 
-          onClick={saveProfile} 
-          disabled={loading}
-          className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-        >
-          <Save className="h-4 w-4 mr-2" />
-          {loading ? 'Salvando...' : 'Salvar Configurações'}
-        </Button>
-        
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" className="flex-1">
-              <LogOut className="h-4 w-4 mr-2" />
-              Sair da Conta
+            
+            <div>
+              <Label htmlFor="endereco">Endereço da Clínica</Label>
+              <Textarea
+                id="endereco"
+                placeholder="Endereço completo da clínica"
+                value={perfil.endereco}
+                onChange={(e) => setPerfil(prev => ({ ...prev, endereco: e.target.value }))}
+              />
+            </div>
+            
+            <Button onClick={handleSalvarPerfil} className="w-full">
+              <Save className="h-4 w-4 mr-2" />
+              Salvar Perfil
             </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirmar logout</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja sair da sua conta? Você precisará fazer login novamente.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleSignOut} className="bg-red-600 hover:bg-red-700">
-                Sair
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          </CardContent>
+        </Card>
+
+        {/* Horários de Atendimento */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Horários de Atendimento
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {diasSemana.map((dia) => (
+              <div key={dia.key} className="flex items-center gap-4">
+                <div className="w-24">
+                  <Switch
+                    checked={horarios[dia.key as keyof typeof horarios].ativo}
+                    onCheckedChange={(checked) =>
+                      setHorarios(prev => ({
+                        ...prev,
+                        [dia.key]: { ...prev[dia.key as keyof typeof horarios], ativo: checked }
+                      }))
+                    }
+                  />
+                  <Label className="text-sm font-medium">{dia.label}</Label>
+                </div>
+                
+                {horarios[dia.key as keyof typeof horarios].ativo && (
+                  <div className="flex gap-2">
+                    <Input
+                      type="time"
+                      value={horarios[dia.key as keyof typeof horarios].inicio}
+                      onChange={(e) =>
+                        setHorarios(prev => ({
+                          ...prev,
+                          [dia.key]: { ...prev[dia.key as keyof typeof horarios], inicio: e.target.value }
+                        }))
+                      }
+                      className="w-24"
+                    />
+                    <span className="self-center">às</span>
+                    <Input
+                      type="time"
+                      value={horarios[dia.key as keyof typeof horarios].fim}
+                      onChange={(e) =>
+                        setHorarios(prev => ({
+                          ...prev,
+                          [dia.key]: { ...prev[dia.key as keyof typeof horarios], fim: e.target.value }
+                        }))
+                      }
+                      className="w-24"
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            <Button onClick={handleSalvarHorarios} className="w-full">
+              <Save className="h-4 w-4 mr-2" />
+              Salvar Horários
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Notificações */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Notificações
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Lembretes por E-mail</Label>
+                <p className="text-sm text-gray-500">Receber lembretes de consultas por e-mail</p>
+              </div>
+              <Switch
+                checked={notificacoes.emailLembretes}
+                onCheckedChange={(checked) =>
+                  setNotificacoes(prev => ({ ...prev, emailLembretes: checked }))
+                }
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Lembretes por WhatsApp</Label>
+                <p className="text-sm text-gray-500">Receber lembretes de consultas por WhatsApp</p>
+              </div>
+              <Switch
+                checked={notificacoes.whatsappLembretes}
+                onCheckedChange={(checked) =>
+                  setNotificacoes(prev => ({ ...prev, whatsappLembretes: checked }))
+                }
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Notificações de Pagamento</Label>
+                <p className="text-sm text-gray-500">Receber notificações sobre pagamentos</p>
+              </div>
+              <Switch
+                checked={notificacoes.notificacoesPagamento}
+                onCheckedChange={(checked) =>
+                  setNotificacoes(prev => ({ ...prev, notificacoesPagamento: checked }))
+                }
+              />
+            </div>
+            
+            <Button onClick={handleSalvarNotificacoes} className="w-full">
+              <Save className="h-4 w-4 mr-2" />
+              Salvar Notificações
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

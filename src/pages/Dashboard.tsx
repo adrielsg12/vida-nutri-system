@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const Dashboard = () => {
   return (
-    <div className="space-y-6">
+    <div className="w-full px-4 lg:px-6 py-6 space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
@@ -45,7 +45,7 @@ export const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Appointments Today - spans 2 columns on large screens */}
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
               <CardTitle>Consultas de Hoje</CardTitle>
             </CardHeader>
@@ -60,7 +60,7 @@ export const Dashboard = () => {
 
         {/* Recent Activity - spans 1 column */}
         <div>
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
               <CardTitle>Atividades Recentes</CardTitle>
             </CardHeader>
@@ -76,7 +76,7 @@ export const Dashboard = () => {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader>
             <CardTitle>Evolução de Atendimentos</CardTitle>
           </CardHeader>
@@ -90,7 +90,7 @@ export const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader>
             <CardTitle>Receitas vs Metas</CardTitle>
           </CardHeader>
