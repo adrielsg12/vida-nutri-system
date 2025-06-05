@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,9 +20,9 @@ import { useToast } from '@/hooks/use-toast';
 interface Paciente {
   id: string;
   nome: string;
-  idade: number;
-  telefone: string;
-  queixas: string;
+  data_nascimento?: string;
+  telefone?: string;
+  objetivo?: string;
   created_at: string;
 }
 
@@ -73,20 +74,33 @@ export const Pacientes = () => {
     setShowFicha(true);
   };
 
+  const calculateAge = (birthDate?: string): string => {
+    if (!birthDate) return 'N/A';
+    const today = new Date();
+    const birth = new Date(birthDate);
+    const age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      return `${age - 1} anos`;
+    }
+    return `${age} anos`;
+  };
+
   if (loading) {
     return (
-      <div className="w-full px-4 lg:px-6 py-6">
+      <div className="container mx-auto px-4 py-8">
         <div className="text-center">Carregando...</div>
       </div>
     );
   }
 
   return (
-    <div className="w-full px-4 lg:px-6 py-6 space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pacientes</h1>
-          <p className="text-gray-600">Gerencie seus pacientes cadastrados</p>
+          <h1 className="text-3xl font-bold text-gray-900">Pacientes</h1>
+          <p className="text-gray-600 mt-2">Gerencie seus pacientes cadastrados</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
@@ -94,7 +108,7 @@ export const Pacientes = () => {
         </Button>
       </div>
 
-      <Card className="shadow-sm">
+      <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
@@ -103,8 +117,8 @@ export const Pacientes = () => {
         </CardHeader>
         <CardContent>
           {pacientes.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <div className="text-center py-12 text-gray-500">
+              <Users className="h-16 w-16 mx-auto mb-4 text-gray-300" />
               <p className="text-lg font-medium mb-2">Nenhum paciente cadastrado</p>
               <p>Comece adicionando seu primeiro paciente.</p>
             </div>
@@ -115,7 +129,7 @@ export const Pacientes = () => {
                   <TableHead>Nome</TableHead>
                   <TableHead>Idade</TableHead>
                   <TableHead>Telefone</TableHead>
-                  <TableHead>Queixas</TableHead>
+                  <TableHead>Objetivo</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
@@ -124,9 +138,9 @@ export const Pacientes = () => {
                 {pacientes.map((paciente) => (
                   <TableRow key={paciente.id}>
                     <TableCell className="font-medium">{paciente.nome}</TableCell>
-                    <TableCell>{paciente.idade} anos</TableCell>
-                    <TableCell>{paciente.telefone}</TableCell>
-                    <TableCell className="max-w-xs truncate">{paciente.queixas}</TableCell>
+                    <TableCell>{calculateAge(paciente.data_nascimento)}</TableCell>
+                    <TableCell>{paciente.telefone || 'N/A'}</TableCell>
+                    <TableCell className="max-w-xs truncate">{paciente.objetivo || 'N/A'}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">Ativo</Badge>
                     </TableCell>
@@ -151,20 +165,21 @@ export const Pacientes = () => {
 
       {showForm && (
         <NovoPatientForm 
+          open={showForm}
           onClose={() => setShowForm(false)}
-          onSave={handleNovoPaciente}
+          onSuccess={handleNovoPaciente}
         />
       )}
 
       {showFicha && selectedPaciente && (
         <FichaPacienteDialog
-          paciente={selectedPaciente}
-          isOpen={showFicha}
+          open={showFicha}
           onClose={() => {
             setShowFicha(false);
             setSelectedPaciente(null);
           }}
           onUpdate={fetchPacientes}
+          selectedPaciente={selectedPaciente}
         />
       )}
     </div>

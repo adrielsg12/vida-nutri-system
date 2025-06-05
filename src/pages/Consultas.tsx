@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,8 +21,7 @@ import { ptBR } from 'date-fns/locale';
 interface Consulta {
   id: string;
   paciente_id: string;
-  data_consulta: string;
-  hora_consulta: string;
+  data_hora: string;
   status: 'agendada' | 'finalizada' | 'cancelada';
   observacoes?: string;
   pacientes: {
@@ -48,7 +48,7 @@ export const Consultas = () => {
           *,
           pacientes (nome)
         `)
-        .order('data_consulta', { ascending: true });
+        .order('data_hora', { ascending: true });
 
       if (error) throw error;
       setConsultas(data || []);
@@ -103,18 +103,18 @@ export const Consultas = () => {
 
   if (loading) {
     return (
-      <div className="w-full px-4 lg:px-6 py-6">
+      <div className="container mx-auto px-4 py-8">
         <div className="text-center">Carregando...</div>
       </div>
     );
   }
 
   return (
-    <div className="w-full px-4 lg:px-6 py-6 space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Consultas</h1>
-          <p className="text-gray-600">Gerencie suas consultas agendadas</p>
+          <h1 className="text-3xl font-bold text-gray-900">Consultas</h1>
+          <p className="text-gray-600 mt-2">Gerencie suas consultas agendadas</p>
         </div>
         <Button onClick={() => setShowNovaConsulta(true)} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
@@ -122,7 +122,7 @@ export const Consultas = () => {
         </Button>
       </div>
 
-      <Card className="shadow-sm">
+      <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
@@ -131,8 +131,8 @@ export const Consultas = () => {
         </CardHeader>
         <CardContent>
           {consultas.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <div className="text-center py-12 text-gray-500">
+              <Calendar className="h-16 w-16 mx-auto mb-4 text-gray-300" />
               <p className="text-lg font-medium mb-2">Nenhuma consulta agendada</p>
               <p>Agende sua primeira consulta para começar.</p>
             </div>
@@ -141,8 +141,7 @@ export const Consultas = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Paciente</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Horário</TableHead>
+                  <TableHead>Data e Hora</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
@@ -153,12 +152,9 @@ export const Consultas = () => {
                     <TableCell className="font-medium">
                       {consulta.pacientes?.nome || 'Paciente não encontrado'}
                     </TableCell>
-                    <TableCell>
-                      {format(new Date(consulta.data_consulta), 'dd/MM/yyyy', { locale: ptBR })}
-                    </TableCell>
                     <TableCell className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {consulta.hora_consulta}
+                      {format(new Date(consulta.data_hora), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
                     </TableCell>
                     <TableCell>
                       <Badge variant={getStatusColor(consulta.status)}>
@@ -187,9 +183,9 @@ export const Consultas = () => {
       </Card>
 
       <NovaConsultaDialog
-        isOpen={showNovaConsulta}
+        open={showNovaConsulta}
         onClose={() => setShowNovaConsulta(false)}
-        onSave={() => {
+        onSuccess={() => {
           setShowNovaConsulta(false);
           fetchConsultas();
         }}

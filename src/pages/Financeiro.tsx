@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -66,18 +67,18 @@ export const Financeiro = () => {
 
   if (loading) {
     return (
-      <div className="w-full px-4 lg:px-6 py-6">
+      <div className="container mx-auto px-4 py-8">
         <div className="text-center">Carregando...</div>
       </div>
     );
   }
 
   return (
-    <div className="w-full px-4 lg:px-6 py-6 space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Financeiro</h1>
-          <p className="text-gray-600">Controle financeiro da sua clínica</p>
+          <h1 className="text-3xl font-bold text-gray-900">Financeiro</h1>
+          <p className="text-gray-600 mt-2">Controle financeiro da sua clínica</p>
         </div>
         <Button onClick={() => setShowNovoPagamento(true)} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
@@ -87,7 +88,7 @@ export const Financeiro = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="shadow-sm">
+        <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Recebido</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -102,7 +103,7 @@ export const Financeiro = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
+        <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Transações</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
@@ -112,7 +113,7 @@ export const Financeiro = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
+        <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Média por Transação</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -131,7 +132,7 @@ export const Financeiro = () => {
         </Card>
       </div>
 
-      <Card className="shadow-sm">
+      <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
@@ -140,8 +141,8 @@ export const Financeiro = () => {
         </CardHeader>
         <CardContent>
           {pagamentos.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <DollarSign className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <div className="text-center py-12 text-gray-500">
+              <DollarSign className="h-16 w-16 mx-auto mb-4 text-gray-300" />
               <p className="text-lg font-medium mb-2">Nenhum pagamento registrado</p>
               <p>Comece adicionando seu primeiro pagamento.</p>
             </div>
@@ -180,9 +181,9 @@ export const Financeiro = () => {
       </Card>
 
       <NovoPagamentoDialog
-        isOpen={showNovoPagamento}
+        open={showNovoPagamento}
         onClose={() => setShowNovoPagamento(false)}
-        onSave={() => {
+        onSuccess={() => {
           setShowNovoPagamento(false);
           fetchPagamentos();
         }}
