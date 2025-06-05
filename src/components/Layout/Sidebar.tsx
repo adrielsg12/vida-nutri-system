@@ -4,7 +4,6 @@ import { NavLink } from 'react-router-dom';
 import { 
   Calendar, 
   Users, 
-  FileText, 
   DollarSign, 
   MessageCircle, 
   Settings,
@@ -33,11 +32,6 @@ const menuItems = [
     title: 'Consultas',
     icon: Calendar,
     href: '/consultas',
-  },
-  {
-    title: 'Planos Alimentares',
-    icon: FileText,
-    href: '/planos',
   },
   {
     title: 'Financeiro',

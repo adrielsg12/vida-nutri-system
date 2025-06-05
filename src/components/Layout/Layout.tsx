@@ -19,17 +19,17 @@ export const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
-      <div className="lg:pl-64">
+      <div className="flex-1 lg:pl-64">
         <Header 
           onMenuClick={() => setSidebarOpen(true)} 
           nutricionista={nutricionista}
           onSignOut={signOut}
         />
         
-        <main className="p-6">
+        <main className="p-4 lg:p-6">
           {children}
         </main>
       </div>

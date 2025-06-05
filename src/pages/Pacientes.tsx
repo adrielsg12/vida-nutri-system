@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { NovoPatientForm } from '@/components/NovoPatientForm';
+import { FichaPacienteDialog } from '@/components/FichaPacienteDialog';
 
 interface Patient {
   id: string;
@@ -47,6 +49,8 @@ export const Pacientes = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewPatientForm, setShowNewPatientForm] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState<string>('');
+  const [showPatientDetails, setShowPatientDetails] = useState(false);
   const { toast } = useToast();
 
   const fetchPatients = async () => {
@@ -176,6 +180,11 @@ export const Pacientes = () => {
     });
   };
 
+  const handleViewPatient = (patientId: string) => {
+    setSelectedPatientId(patientId);
+    setShowPatientDetails(true);
+  };
+
   useEffect(() => {
     fetchPatients();
   }, []);
@@ -231,9 +240,9 @@ export const Pacientes = () => {
   }
 
   return (
-    <div className="space-y-6 p-4 max-w-7xl mx-auto">
-      {/* Header - layout ajustado */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Pacientes</h1>
           <p className="text-gray-600">Gerencie seus pacientes e acompanhe o progresso</p>
@@ -247,8 +256,8 @@ export const Pacientes = () => {
         </Button>
       </div>
 
-      {/* Filters - layout centralizado */}
-      <Card className="mx-auto">
+      {/* Filters */}
+      <Card>
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
@@ -268,7 +277,7 @@ export const Pacientes = () => {
         </CardContent>
       </Card>
 
-      {/* Patients Grid - layout ajustado */}
+      {/* Patients Grid */}
       {filteredPatients.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPatients.map((patient) => (
@@ -297,9 +306,10 @@ export const Pacientes = () => {
                     <DropdownMenuContent align="end" className="bg-white">
                       <DropdownMenuLabel>Ações</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem>Ver ficha</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleViewPatient(patient.id)}>
+                        Ver ficha
+                      </DropdownMenuItem>
                       <DropdownMenuItem>Agendar consulta</DropdownMenuItem>
-                      <DropdownMenuItem>Enviar plano</DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => togglePatientStatus(patient.id, patient.status)}>
                         {patient.status === 'ativo' ? 'Inativar' : 'Ativar'}
@@ -372,7 +382,11 @@ export const Pacientes = () => {
                 </div>
 
                 <div className="flex gap-2 pt-2">
-                  <Button size="sm" className="flex-1">
+                  <Button 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleViewPatient(patient.id)}
+                  >
                     Ver Ficha
                   </Button>
                   <Button size="sm" variant="outline" className="flex-1">
@@ -384,7 +398,7 @@ export const Pacientes = () => {
           ))}
         </div>
       ) : (
-        <Card className="mx-auto max-w-md">
+        <Card>
           <CardContent className="p-12 text-center">
             <UserPlus className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -404,11 +418,18 @@ export const Pacientes = () => {
         </Card>
       )}
 
-      {/* Modal de novo paciente */}
+      {/* Dialogs */}
       <NovoPatientForm 
         open={showNewPatientForm}
         onClose={() => setShowNewPatientForm(false)}
         onSuccess={handlePatientAdded}
+      />
+
+      <FichaPacienteDialog 
+        open={showPatientDetails}
+        onClose={() => setShowPatientDetails(false)}
+        patientId={selectedPatientId}
+        onSuccess={fetchPatients}
       />
     </div>
   );

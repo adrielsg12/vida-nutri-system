@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,78 +22,131 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { NovoPagamentoDialog } from '@/components/NovoPagamentoDialog';
 
-interface Transaction {
+interface Payment {
   id: string;
-  patient: string;
-  description: string;
-  amount: number;
-  date: string;
-  status: 'pago' | 'pendente' | 'vencido';
-  paymentMethod: 'dinheiro' | 'pix' | 'cartao' | 'boleto';
+  paciente_nome: string;
+  valor: number;
+  data_pagamento: string;
+  forma_pagamento: string;
+  status: 'pago' | 'pendente' | 'cancelado';
+  observacoes?: string;
 }
 
-const mockTransactions: Transaction[] = [
-  {
-    id: '1',
-    patient: 'Maria Santos',
-    description: 'Consulta nutricional - Maio/2024',
-    amount: 150,
-    date: '2024-05-28',
-    status: 'pago',
-    paymentMethod: 'pix'
-  },
-  {
-    id: '2',
-    patient: 'João Silva',
-    description: 'Plano alimentar personalizado',
-    amount: 200,
-    date: '2024-05-25',
-    status: 'pago',
-    paymentMethod: 'cartao'
-  },
-  {
-    id: '3',
-    patient: 'Ana Costa',
-    description: 'Consulta de retorno',
-    amount: 120,
-    date: '2024-06-05',
-    status: 'pendente',
-    paymentMethod: 'boleto'
-  },
-  {
-    id: '4',
-    patient: 'Carlos Oliveira',
-    description: 'Consulta nutricional',
-    amount: 150,
-    date: '2024-05-20',
-    status: 'vencido',
-    paymentMethod: 'dinheiro'
-  },
-];
-
 export const Financeiro = () => {
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
+  const [showNewPaymentDialog, setShowNewPaymentDialog] = useState(false);
+  const { toast } = useToast();
 
-  const filteredTransactions = mockTransactions.filter(transaction => {
-    const matchesSearch = transaction.patient.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         transaction.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'todos' || transaction.status === statusFilter;
+  const fetchPayments = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('pagamentos')
+        .select(`
+          *,
+          pacientes!inner(nome)
+        `)
+        .eq('nutricionista_id', user.id)
+        .order('data_pagamento', { ascending: false });
+
+      if (error) {
+        console.error('Erro ao buscar pagamentos:', error);
+        toast({
+          title: "Erro ao carregar pagamentos",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const formattedPayments = (data || []).map(payment => ({
+        id: payment.id,
+        paciente_nome: payment.pacientes?.nome || 'Paciente não encontrado',
+        valor: payment.valor,
+        data_pagamento: payment.data_pagamento,
+        forma_pagamento: payment.forma_pagamento,
+        status: payment.status as 'pago' | 'pendente' | 'cancelado',
+        observacoes: payment.observacoes
+      }));
+
+      setPayments(formattedPayments);
+    } catch (error) {
+      console.error('Erro inesperado:', error);
+      toast({
+        title: "Erro inesperado",
+        description: "Ocorreu um erro ao carregar os pagamentos.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deletePayment = async (paymentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('pagamentos')
+        .delete()
+        .eq('id', paymentId);
+
+      if (error) {
+        console.error('Erro ao excluir pagamento:', error);
+        toast({
+          title: "Erro ao excluir pagamento",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Pagamento excluído",
+        description: "O pagamento foi removido com sucesso.",
+      });
+
+      setPayments(payments.filter(p => p.id !== paymentId));
+    } catch (error) {
+      console.error('Erro inesperado:', error);
+      toast({
+        title: "Erro inesperado",
+        description: "Ocorreu um erro ao excluir o pagamento.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchPayments();
+  }, []);
+
+  const filteredPayments = payments.filter(payment => {
+    const matchesSearch = payment.paciente_nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         payment.forma_pagamento.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'todos' || payment.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusBadge = (status: Transaction['status']) => {
+  const getStatusBadge = (status: Payment['status']) => {
     const variants = {
       pago: 'bg-emerald-100 text-emerald-700',
       pendente: 'bg-yellow-100 text-yellow-700',
-      vencido: 'bg-red-100 text-red-700',
+      cancelado: 'bg-red-100 text-red-700',
     };
 
     const labels = {
       pago: 'Pago',
       pendente: 'Pendente',
-      vencido: 'Vencido',
+      cancelado: 'Cancelado',
     };
 
     return (
@@ -103,27 +156,35 @@ export const Financeiro = () => {
     );
   };
 
-  const getPaymentMethodLabel = (method: Transaction['paymentMethod']) => {
-    const labels = {
+  const getPaymentMethodLabel = (method: string) => {
+    const labels: Record<string, string> = {
       dinheiro: 'Dinheiro',
       pix: 'PIX',
-      cartao: 'Cartão',
+      cartao_credito: 'Cartão de Crédito',
+      cartao_debito: 'Cartão de Débito',
       boleto: 'Boleto',
     };
-    return labels[method];
+    return labels[method] || method;
   };
 
-  const totalReceived = mockTransactions
-    .filter(t => t.status === 'pago')
-    .reduce((sum, t) => sum + t.amount, 0);
+  const totalReceived = payments
+    .filter(p => p.status === 'pago')
+    .reduce((sum, p) => sum + p.valor, 0);
 
-  const totalPending = mockTransactions
-    .filter(t => t.status === 'pendente')
-    .reduce((sum, t) => sum + t.amount, 0);
+  const totalPending = payments
+    .filter(p => p.status === 'pendente')
+    .reduce((sum, p) => sum + p.valor, 0);
 
-  const totalOverdue = mockTransactions
-    .filter(t => t.status === 'vencido')
-    .reduce((sum, t) => sum + t.amount, 0);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando dados financeiros...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -138,9 +199,12 @@ export const Financeiro = () => {
             <Download className="h-4 w-4 mr-2" />
             Exportar
           </Button>
-          <Button className="bg-emerald-600 hover:bg-emerald-700">
+          <Button 
+            className="bg-emerald-600 hover:bg-emerald-700"
+            onClick={() => setShowNewPaymentDialog(true)}
+          >
             <Plus className="h-4 w-4 mr-2" />
-            Nova Cobrança
+            Novo Pagamento
           </Button>
         </div>
       </div>
@@ -149,29 +213,27 @@ export const Financeiro = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
           title="Total Recebido"
-          value={`R$ ${totalReceived.toLocaleString('pt-BR')}`}
+          value={`R$ ${totalReceived.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
           icon={DollarSign}
-          trend={{ value: 12, isPositive: true }}
           color="emerald"
         />
         <StatsCard
           title="Pendente"
-          value={`R$ ${totalPending.toLocaleString('pt-BR')}`}
+          value={`R$ ${totalPending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
           icon={Calendar}
           color="orange"
         />
         <StatsCard
-          title="Vencido"
-          value={`R$ ${totalOverdue.toLocaleString('pt-BR')}`}
-          icon={TrendingUp}
-          color="purple"
+          title="Total de Pagamentos"
+          value={payments.length.toString()}
+          icon={CreditCard}
+          color="blue"
         />
         <StatsCard
-          title="Meta Mensal"
-          value="R$ 15.000"
-          icon={CreditCard}
-          trend={{ value: 8, isPositive: true }}
-          color="blue"
+          title="Média por Pagamento"
+          value={`R$ ${payments.length > 0 ? (totalReceived / payments.filter(p => p.status === 'pago').length || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}`}
+          icon={TrendingUp}
+          color="purple"
         />
       </div>
 
@@ -182,7 +244,7 @@ export const Financeiro = () => {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Buscar transações..."
+                placeholder="Buscar pagamentos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -196,68 +258,97 @@ export const Financeiro = () => {
                 <SelectItem value="todos">Todos</SelectItem>
                 <SelectItem value="pago">Pago</SelectItem>
                 <SelectItem value="pendente">Pendente</SelectItem>
-                <SelectItem value="vencido">Vencido</SelectItem>
+                <SelectItem value="cancelado">Cancelado</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Mais Filtros
-            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Transactions Table */}
+      {/* Payments Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Transações Recentes</CardTitle>
+          <CardTitle>Pagamentos</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {filteredTransactions.map((transaction) => (
-              <div key={transaction.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:bg-gray-50">
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900">
-                      {transaction.patient}
-                    </h3>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-gray-900">
-                        R$ {transaction.amount.toLocaleString('pt-BR')}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">
-                        {transaction.description}
-                      </p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span>{new Date(transaction.date).toLocaleDateString('pt-BR')}</span>
-                        <span>{getPaymentMethodLabel(transaction.paymentMethod)}</span>
+          {filteredPayments.length > 0 ? (
+            <div className="space-y-4">
+              {filteredPayments.map((payment) => (
+                <div key={payment.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:bg-gray-50">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-gray-900">
+                        {payment.paciente_nome}
+                      </h3>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-gray-900">
+                          R$ {payment.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {getStatusBadge(transaction.status)}
-                      {transaction.status === 'pendente' && (
-                        <Button size="sm" variant="outline">
-                          Cobrar
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          <span>{new Date(payment.data_pagamento).toLocaleDateString('pt-BR')}</span>
+                          <span>{getPaymentMethodLabel(payment.forma_pagamento)}</span>
+                        </div>
+                        {payment.observacoes && (
+                          <p className="text-sm text-gray-600 mt-1">{payment.observacoes}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {getStatusBadge(payment.status)}
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() => {
+                            if (confirm('Tem certeza que deseja excluir este pagamento?')) {
+                              deletePayment(payment.id);
+                            }
+                          }}
+                        >
+                          Excluir
                         </Button>
-                      )}
-                      {transaction.status === 'pago' && (
-                        <Button size="sm" variant="outline">
-                          Recibo
-                        </Button>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Nenhum pagamento encontrado
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {searchTerm || statusFilter !== 'todos' 
+                  ? 'Tente ajustar os filtros de busca' 
+                  : 'Comece registrando seu primeiro pagamento'
+                }
+              </p>
+              <Button 
+                className="bg-emerald-600 hover:bg-emerald-700"
+                onClick={() => setShowNewPaymentDialog(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Pagamento
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      <NovoPagamentoDialog 
+        open={showNewPaymentDialog}
+        onClose={() => setShowNewPaymentDialog(false)}
+        onSuccess={() => {
+          setShowNewPaymentDialog(false);
+          fetchPayments();
+        }}
+      />
     </div>
   );
 };

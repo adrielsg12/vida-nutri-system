@@ -48,16 +48,6 @@ const App = () => (
                 </Layout>
               </ProtectedRoute>
             } />
-            <Route path="/planos" element={
-              <ProtectedRoute>
-                <Layout>
-                  <div className="p-8 text-center">
-                    <h1 className="text-2xl font-bold">Planos Alimentares</h1>
-                    <p className="text-gray-600 mt-2">Em desenvolvimento...</p>
-                  </div>
-                </Layout>
-              </ProtectedRoute>
-            } />
             <Route path="/financeiro" element={
               <ProtectedRoute>
                 <Layout>
