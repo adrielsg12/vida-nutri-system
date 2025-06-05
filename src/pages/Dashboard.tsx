@@ -1,9 +1,7 @@
 
 import React from 'react';
 import { StatsCard } from '@/components/Dashboard/StatsCard';
-import { RecentActivity } from '@/components/Dashboard/RecentActivity';
-import { AppointmentsToday } from '@/components/Dashboard/AppointmentsToday';
-import { Users, Calendar, DollarSign, TrendingUp } from 'lucide-react';
+import { Users, Calendar, DollarSign, TrendingUp, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const Dashboard = () => {
@@ -104,7 +102,7 @@ export const Dashboard = () => {
               </div>
             </div>
           </CardContent>
-        </div>
+        </Card>
       </div>
     </div>
   );
