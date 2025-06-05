@@ -5,15 +5,31 @@ import { ProximasConsultas } from '@/components/Dashboard/ProximasConsultas';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { Users, Calendar, DollarSign, TrendingUp } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useNavigate } from 'react-router-dom';
 
 export const Dashboard = () => {
   const { stats, proximasConsultas, loading } = useDashboardData();
+  const navigate = useNavigate();
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     });
+  };
+
+  const handleCardClick = (type: string) => {
+    switch (type) {
+      case 'pacientes':
+        navigate('/pacientes');
+        break;
+      case 'consultas':
+        navigate('/consultas');
+        break;
+      case 'financeiro':
+        navigate('/financeiro');
+        break;
+    }
   };
 
   if (loading) {
@@ -82,24 +98,31 @@ export const Dashboard = () => {
           value={stats.totalPacientes.toString()}
           icon={Users}
           color="emerald"
+          onClick={() => handleCardClick('pacientes')}
+          clickable
         />
         <StatsCard
           title="Consultas Hoje"
           value={stats.consultasHoje.toString()}
           icon={Calendar}
           color="blue"
+          onClick={() => handleCardClick('consultas')}
+          clickable
         />
         <StatsCard
           title="Consultas Finalizadas"
           value={stats.consultasConcluidas.toString()}
           icon={TrendingUp}
           color="purple"
+          clickable={false}
         />
         <StatsCard
           title="Receita Mensal"
           value={formatCurrency(stats.recebimentosMes)}
           icon={DollarSign}
           color="orange"
+          onClick={() => handleCardClick('financeiro')}
+          clickable
         />
       </div>
 
