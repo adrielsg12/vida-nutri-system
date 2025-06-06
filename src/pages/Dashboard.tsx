@@ -37,7 +37,7 @@ export const Dashboard = () => {
       <div className="w-full px-4 lg:px-6 py-6 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Bem-vinda de volta! Aqui está um resumo do seu dia.</p>
+          <p className="text-gray-600">Bem-vinda de volta ao NutriSync! Aqui está um resumo do seu dia.</p>
         </div>
 
         {/* Loading skeleton for stats cards */}
@@ -88,7 +88,7 @@ export const Dashboard = () => {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Bem-vinda de volta! Aqui está um resumo do seu dia.</p>
+        <p className="text-gray-600">Bem-vinda de volta ao NutriSync! Aqui está um resumo do seu dia.</p>
       </div>
 
       {/* Stats Cards */}
