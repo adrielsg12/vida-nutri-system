@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -57,7 +56,14 @@ export const Financeiro = () => {
         .order('data_pagamento', { ascending: false });
 
       if (error) throw error;
-      setPagamentos(data || []);
+      
+      // Type cast the data to match our interface
+      const typedPagamentos = (data || []).map(item => ({
+        ...item,
+        status: item.status as 'pago' | 'pendente' | 'cancelado'
+      }));
+      
+      setPagamentos(typedPagamentos);
     } catch (error) {
       console.error('Erro ao carregar pagamentos:', error);
       toast({
