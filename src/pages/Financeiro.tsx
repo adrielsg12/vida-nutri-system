@@ -10,8 +10,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { NovoPagamentoDialog } from '@/components/NovoPagamentoDialog';
-import { DollarSign, Plus, TrendingUp, CreditCard } from 'lucide-react';
+import { EditarPagamentoDialog } from '@/components/EditarPagamentoDialog';
+import { DollarSign, Plus, TrendingUp, CreditCard, MoreHorizontal, Edit, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -23,6 +30,8 @@ interface Pagamento {
   valor: number;
   data_pagamento: string;
   forma_pagamento: string;
+  status: 'pago' | 'pendente' | 'cancelado';
+  observacoes: string;
   pacientes: {
     nome: string;
   };
@@ -31,6 +40,8 @@ interface Pagamento {
 export const Financeiro = () => {
   const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
   const [showNovoPagamento, setShowNovoPagamento] = useState(false);
+  const [showEditarPagamento, setShowEditarPagamento] = useState(false);
+  const [selectedPagamento, setSelectedPagamento] = useState<Pagamento | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -63,7 +74,82 @@ export const Financeiro = () => {
     fetchPagamentos();
   }, []);
 
+  const handleDarBaixa = async (pagamento: Pagamento) => {
+    if (pagamento.status === 'pago') {
+      toast({
+        title: 'Pagamento já pago',
+        description: 'Este pagamento já foi marcado como pago.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('pagamentos')
+        .update({ status: 'pago' })
+        .eq('id', pagamento.id);
+
+      if (error) {
+        console.error('Erro ao dar baixa no pagamento:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível dar baixa no pagamento.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      toast({
+        title: 'Baixa realizada',
+        description: 'Pagamento marcado como pago com sucesso.',
+      });
+
+      fetchPagamentos();
+    } catch (error) {
+      console.error('Erro inesperado:', error);
+      toast({
+        title: 'Erro inesperado',
+        description: 'Ocorreu um erro ao processar a solicitação.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleEditarPagamento = (pagamento: Pagamento) => {
+    setSelectedPagamento(pagamento);
+    setShowEditarPagamento(true);
+  };
+
   const totalRecebido = pagamentos.reduce((total, pagamento) => total + pagamento.valor, 0);
+  const pagamentosPagos = pagamentos.filter(p => p.status === 'pago');
+  const totalPago = pagamentosPagos.reduce((total, pagamento) => total + pagamento.valor, 0);
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pago':
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'pendente':
+        return <AlertCircle className="h-4 w-4 text-yellow-600" />;
+      case 'cancelado':
+        return <AlertCircle className="h-4 w-4 text-red-600" />;
+      default:
+        return null;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pago':
+        return 'text-green-600 bg-green-50';
+      case 'pendente':
+        return 'text-yellow-600 bg-yellow-50';
+      case 'cancelado':
+        return 'text-red-600 bg-red-50';
+      default:
+        return 'text-gray-600 bg-gray-50';
+    }
+  };
 
   if (loading) {
     return (
@@ -87,15 +173,30 @@ export const Financeiro = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Recebido</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Registrado</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {totalRecebido.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Pago</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {totalPago.toLocaleString('pt-BR', {
                 style: 'currency',
                 currency: 'BRL'
               })}
@@ -154,6 +255,8 @@ export const Financeiro = () => {
                   <TableHead>Valor</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead>Forma de Pagamento</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -172,6 +275,36 @@ export const Financeiro = () => {
                       {format(new Date(pagamento.data_pagamento), 'dd/MM/yyyy', { locale: ptBR })}
                     </TableCell>
                     <TableCell>{pagamento.forma_pagamento}</TableCell>
+                    <TableCell>
+                      <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(pagamento.status)}`}>
+                        {getStatusIcon(pagamento.status)}
+                        {pagamento.status.charAt(0).toUpperCase() + pagamento.status.slice(1)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEditarPagamento(pagamento)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
+                          {pagamento.status !== 'pago' && (
+                            <DropdownMenuItem 
+                              onClick={() => handleDarBaixa(pagamento)}
+                              className="text-green-600"
+                            >
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              Dar Baixa
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -187,6 +320,20 @@ export const Financeiro = () => {
           setShowNovoPagamento(false);
           fetchPagamentos();
         }}
+      />
+
+      <EditarPagamentoDialog
+        open={showEditarPagamento}
+        onClose={() => {
+          setShowEditarPagamento(false);
+          setSelectedPagamento(null);
+        }}
+        onSuccess={() => {
+          setShowEditarPagamento(false);
+          setSelectedPagamento(null);
+          fetchPagamentos();
+        }}
+        pagamento={selectedPagamento}
       />
     </div>
   );
