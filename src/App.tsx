@@ -12,6 +12,8 @@ import { Financeiro } from "@/pages/Financeiro";
 import { Comunicacao } from "@/pages/Comunicacao";
 import { Configuracoes } from "@/pages/Configuracoes";
 import { Auth } from "@/pages/Auth";
+import { AcessoNegado } from "@/pages/AcessoNegado";
+import { AcessoRejeitado } from "@/pages/AcessoRejeitado";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
@@ -27,6 +29,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/acesso-negado" element={<AcessoNegado />} />
+            <Route path="/acesso-rejeitado" element={<AcessoRejeitado />} />
             <Route path="/" element={
               <ProtectedRoute>
                 <Layout>

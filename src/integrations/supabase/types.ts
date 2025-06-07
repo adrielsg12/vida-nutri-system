@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      aprovacoes_acesso: {
+        Row: {
+          aprovado_por: string | null
+          created_at: string | null
+          data_aprovacao: string | null
+          data_solicitacao: string | null
+          id: string
+          observacoes: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          aprovado_por?: string | null
+          created_at?: string | null
+          data_aprovacao?: string | null
+          data_solicitacao?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          aprovado_por?: string | null
+          created_at?: string | null
+          data_aprovacao?: string | null
+          data_solicitacao?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       consultas: {
         Row: {
           created_at: string | null
@@ -242,6 +278,7 @@ export type Database = {
           id: string
           logotipo_url: string | null
           nome_completo: string
+          status: string | null
           telefone: string | null
           updated_at: string | null
         }
@@ -254,6 +291,7 @@ export type Database = {
           id: string
           logotipo_url?: string | null
           nome_completo: string
+          status?: string | null
           telefone?: string | null
           updated_at?: string | null
         }
@@ -266,6 +304,7 @@ export type Database = {
           id?: string
           logotipo_url?: string | null
           nome_completo?: string
+          status?: string | null
           telefone?: string | null
           updated_at?: string | null
         }
@@ -276,7 +315,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      aprovar_usuario: {
+        Args: {
+          usuario_id: string
+          aprovador_id: string
+          observacoes_param?: string
+        }
+        Returns: boolean
+      }
+      rejeitar_usuario: {
+        Args: {
+          usuario_id: string
+          aprovador_id: string
+          observacoes_param?: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
