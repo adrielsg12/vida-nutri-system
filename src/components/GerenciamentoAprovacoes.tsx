@@ -18,7 +18,7 @@ interface AprovacaoAcesso {
   observacoes?: string;
   profiles: {
     nome_completo: string;
-  };
+  } | null;
 }
 
 export const GerenciamentoAprovacoes = () => {
