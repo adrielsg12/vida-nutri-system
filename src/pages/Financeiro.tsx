@@ -1,6 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -17,11 +27,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { NovoPagamentoDialog } from '@/components/NovoPagamentoDialog';
 import { EditarPagamentoDialog } from '@/components/EditarPagamentoDialog';
-import { DollarSign, Plus, TrendingUp, CreditCard, MoreHorizontal, Edit, CheckCircle, AlertCircle } from 'lucide-react';
+import { DollarSign, Plus, TrendingUp, CreditCard, MoreHorizontal, Edit, CheckCircle, AlertCircle, Download, Filter, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import * as XLSX from 'xlsx';
 
 interface Pagamento {
   id: string;
@@ -38,10 +49,15 @@ interface Pagamento {
 
 export const Financeiro = () => {
   const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
+  const [filteredPagamentos, setFilteredPagamentos] = useState<Pagamento[]>([]);
   const [showNovoPagamento, setShowNovoPagamento] = useState(false);
   const [showEditarPagamento, setShowEditarPagamento] = useState(false);
   const [selectedPagamento, setSelectedPagamento] = useState<Pagamento | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('todos');
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
   const { toast } = useToast();
 
   const fetchPagamentos = async () => {
@@ -57,13 +73,13 @@ export const Financeiro = () => {
 
       if (error) throw error;
       
-      // Type cast the data to match our interface
       const typedPagamentos = (data || []).map(item => ({
         ...item,
         status: item.status as 'pago' | 'pendente' | 'cancelado'
       }));
       
       setPagamentos(typedPagamentos);
+      setFilteredPagamentos(typedPagamentos);
     } catch (error) {
       console.error('Erro ao carregar pagamentos:', error);
       toast({
@@ -79,6 +95,43 @@ export const Financeiro = () => {
   useEffect(() => {
     fetchPagamentos();
   }, []);
+
+  useEffect(() => {
+    let filtered = pagamentos.filter(pagamento => {
+      const matchesSearch = pagamento.pacientes?.nome.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'todos' || pagamento.status === statusFilter;
+      const pagamentoDate = new Date(pagamento.data_pagamento);
+      const matchesDataInicio = !dataInicio || pagamentoDate >= new Date(dataInicio);
+      const matchesDataFim = !dataFim || pagamentoDate <= new Date(dataFim);
+
+      return matchesSearch && matchesStatus && matchesDataInicio && matchesDataFim;
+    });
+
+    setFilteredPagamentos(filtered);
+  }, [pagamentos, searchTerm, statusFilter, dataInicio, dataFim]);
+
+  const exportToExcel = () => {
+    const exportData = filteredPagamentos.map(pagamento => ({
+      'Paciente': pagamento.pacientes?.nome || 'Não informado',
+      'Valor': pagamento.valor,
+      'Data': format(new Date(pagamento.data_pagamento), 'dd/MM/yyyy', { locale: ptBR }),
+      'Forma de Pagamento': pagamento.forma_pagamento,
+      'Status': pagamento.status.charAt(0).toUpperCase() + pagamento.status.slice(1),
+      'Observações': pagamento.observacoes || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório Financeiro');
+
+    const fileName = `relatorio_financeiro_${format(new Date(), 'dd-MM-yyyy')}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+
+    toast({
+      title: 'Exportação realizada',
+      description: 'Relatório exportado com sucesso.',
+    });
+  };
 
   const handleDarBaixa = async (pagamento: Pagamento) => {
     if (pagamento.status === 'pago') {
@@ -127,8 +180,8 @@ export const Financeiro = () => {
     setShowEditarPagamento(true);
   };
 
-  const totalRecebido = pagamentos.reduce((total, pagamento) => total + pagamento.valor, 0);
-  const pagamentosPagos = pagamentos.filter(p => p.status === 'pago');
+  const totalRecebido = filteredPagamentos.reduce((total, pagamento) => total + pagamento.valor, 0);
+  const pagamentosPagos = filteredPagamentos.filter(p => p.status === 'pago');
   const totalPago = pagamentosPagos.reduce((total, pagamento) => total + pagamento.valor, 0);
 
   const getStatusIcon = (status: string) => {
@@ -172,11 +225,76 @@ export const Financeiro = () => {
           <h1 className="text-3xl font-bold text-gray-900">Financeiro</h1>
           <p className="text-gray-600 mt-2">Controle financeiro da sua clínica</p>
         </div>
-        <Button onClick={() => setShowNovoPagamento(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Adicionar Pagamento
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={exportToExcel} variant="outline" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Exportar XLS
+          </Button>
+          <Button onClick={() => setShowNovoPagamento(true)} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Adicionar Pagamento
+          </Button>
+        </div>
       </div>
+
+      {/* Filtros */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filtros
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor="search">Buscar por nome</Label>
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="search"
+                  placeholder="Nome do paciente..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  <SelectItem value="pago">Pago</SelectItem>
+                  <SelectItem value="pendente">Pendente</SelectItem>
+                  <SelectItem value="cancelado">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="data-inicio">Data início</Label>
+              <Input
+                id="data-inicio"
+                type="date"
+                value={dataInicio}
+                onChange={(e) => setDataInicio(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="data-fim">Data fim</Label>
+              <Input
+                id="data-fim"
+                type="date"
+                value={dataFim}
+                onChange={(e) => setDataFim(e.target.value)}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -216,7 +334,7 @@ export const Financeiro = () => {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pagamentos.length}</div>
+            <div className="text-2xl font-bold">{filteredPagamentos.length}</div>
           </CardContent>
         </Card>
 
@@ -227,8 +345,8 @@ export const Financeiro = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {pagamentos.length > 0
-                ? (totalRecebido / pagamentos.length).toLocaleString('pt-BR', {
+              {filteredPagamentos.length > 0
+                ? (totalRecebido / filteredPagamentos.length).toLocaleString('pt-BR', {
                     style: 'currency',
                     currency: 'BRL'
                   })
@@ -243,15 +361,15 @@ export const Financeiro = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
-            Histórico de Pagamentos ({pagamentos.length})
+            Histórico de Pagamentos ({filteredPagamentos.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {pagamentos.length === 0 ? (
+          {filteredPagamentos.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <DollarSign className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-              <p className="text-lg font-medium mb-2">Nenhum pagamento registrado</p>
-              <p>Comece adicionando seu primeiro pagamento.</p>
+              <p className="text-lg font-medium mb-2">Nenhum pagamento encontrado</p>
+              <p>Ajuste os filtros ou adicione um novo pagamento.</p>
             </div>
           ) : (
             <Table>
@@ -266,7 +384,7 @@ export const Financeiro = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pagamentos.map((pagamento) => (
+                {filteredPagamentos.map((pagamento) => (
                   <TableRow key={pagamento.id}>
                     <TableCell className="font-medium">
                       {pagamento.pacientes?.nome || 'Paciente não encontrado'}
