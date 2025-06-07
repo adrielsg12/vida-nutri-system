@@ -16,9 +16,7 @@ interface AprovacaoAcesso {
   status: string;
   data_solicitacao: string;
   observacoes?: string;
-  profiles: {
-    nome_completo: string;
-  } | null;
+  nome_completo?: string;
 }
 
 export const GerenciamentoAprovacoes = () => {
@@ -30,22 +28,37 @@ export const GerenciamentoAprovacoes = () => {
 
   const carregarAprovacoes = async () => {
     try {
-      const { data, error } = await supabase
+      // Buscar aprovações e nomes dos usuários separadamente
+      const { data: aprovacoesData, error: aprovacoesError } = await supabase
         .from('aprovacoes_acesso')
-        .select(`
-          id,
-          user_id,
-          status,
-          data_solicitacao,
-          observacoes,
-          profiles!aprovacoes_acesso_user_id_fkey (
-            nome_completo
-          )
-        `)
+        .select('*')
         .order('data_solicitacao', { ascending: false });
 
-      if (error) throw error;
-      setAprovacoes(data || []);
+      if (aprovacoesError) throw aprovacoesError;
+
+      if (aprovacoesData && aprovacoesData.length > 0) {
+        // Buscar os perfis dos usuários
+        const userIds = aprovacoesData.map(a => a.user_id);
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, nome_completo')
+          .in('id', userIds);
+
+        if (profilesError) throw profilesError;
+
+        // Combinar os dados
+        const aprovacoesComNomes = aprovacoesData.map(aprovacao => {
+          const profile = profilesData?.find(p => p.id === aprovacao.user_id);
+          return {
+            ...aprovacao,
+            nome_completo: profile?.nome_completo || 'Nome não encontrado'
+          };
+        });
+
+        setAprovacoes(aprovacoesComNomes);
+      } else {
+        setAprovacoes([]);
+      }
     } catch (error) {
       console.error('Erro ao carregar aprovações:', error);
       toast({
@@ -157,7 +170,7 @@ export const GerenciamentoAprovacoes = () => {
           <TableBody>
             {aprovacoes.map((aprovacao) => (
               <TableRow key={aprovacao.id}>
-                <TableCell>{aprovacao.profiles?.nome_completo || 'N/A'}</TableCell>
+                <TableCell>{aprovacao.nome_completo || 'N/A'}</TableCell>
                 <TableCell>
                   {new Date(aprovacao.data_solicitacao).toLocaleDateString('pt-BR')}
                 </TableCell>
