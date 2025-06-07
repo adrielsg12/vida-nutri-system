@@ -9,7 +9,7 @@ export const AcessoNegado = () => {
   const { signOut } = useAuth();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
       <div className="max-w-md w-full space-y-8 px-4">
         <Card className="shadow-lg">
           <CardHeader className="text-center">
@@ -44,6 +44,15 @@ export const AcessoNegado = () => {
             </div>
           </CardContent>
         </Card>
+      </div>
+      
+      {/* Footer fixo na parte inferior */}
+      <div className="mt-auto py-4 px-4 text-center">
+        <p className="text-sm text-gray-600">
+          Sistema desenvolvido pela{' '}
+          <span className="font-semibold text-gray-900">Brainstorm Agência de Marketing</span>
+          {' '}- Contato: (32) 9 9166-5327
+        </p>
       </div>
     </div>
   );

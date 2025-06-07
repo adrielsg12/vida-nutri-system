@@ -133,7 +133,7 @@ export const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
       <div className="max-w-md w-full space-y-8 px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="text-4xl font-bold text-gray-900 mb-2">
@@ -259,6 +259,15 @@ export const Auth = () => {
             </Tabs>
           </CardContent>
         </Card>
+      </div>
+      
+      {/* Footer fixo na parte inferior */}
+      <div className="mt-auto py-4 px-4 text-center">
+        <p className="text-sm text-gray-600">
+          Sistema desenvolvido pela{' '}
+          <span className="font-semibold text-gray-900">Brainstorm Agência de Marketing</span>
+          {' '}- Contato: (32) 9 9166-5327
+        </p>
       </div>
     </div>
   );

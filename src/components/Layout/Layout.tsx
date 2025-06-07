@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { TopNavigation } from './TopNavigation';
+import { Footer } from './Footer';
 import { useAuth } from '@/hooks/useAuth';
 
 interface LayoutProps {
@@ -17,15 +18,17 @@ export const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <TopNavigation 
         nutricionista={nutricionista}
         onSignOut={signOut}
       />
       
-      <main className="w-full">
+      <main className="flex-1 w-full">
         {children}
       </main>
+      
+      <Footer />
     </div>
   );
 };
