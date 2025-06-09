@@ -7,6 +7,12 @@ interface UserProfile {
   id: string;
   nome_completo: string;
   status: string;
+  crn?: string;
+  telefone?: string;
+  endereco?: string;
+  clinica?: string;
+  cidade?: string;
+  estado?: string;
 }
 
 export const useUserStatus = () => {
@@ -24,7 +30,7 @@ export const useUserStatus = () => {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, nome_completo, status')
+          .select('id, nome_completo, status, crn, telefone, endereco, clinica, cidade, estado')
           .eq('id', user.id)
           .single();
 
@@ -52,5 +58,6 @@ export const useUserStatus = () => {
     isApproved: userProfile?.status === 'aprovado' || userProfile?.status === 'admin',
     isPending: userProfile?.status === 'pendente',
     isRejected: userProfile?.status === 'rejeitado',
+    isInactive: userProfile?.status === 'inativo',
   };
 };

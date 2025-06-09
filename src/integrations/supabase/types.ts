@@ -274,6 +274,7 @@ export type Database = {
           clinica: string | null
           created_at: string | null
           crn: string | null
+          endereco: string | null
           estado: string | null
           id: string
           logotipo_url: string | null
@@ -287,6 +288,7 @@ export type Database = {
           clinica?: string | null
           created_at?: string | null
           crn?: string | null
+          endereco?: string | null
           estado?: string | null
           id: string
           logotipo_url?: string | null
@@ -300,6 +302,7 @@ export type Database = {
           clinica?: string | null
           created_at?: string | null
           crn?: string | null
+          endereco?: string | null
           estado?: string | null
           id?: string
           logotipo_url?: string | null
@@ -321,6 +324,14 @@ export type Database = {
           aprovador_id: string
           observacoes_param?: string
         }
+        Returns: boolean
+      }
+      inativar_usuario: {
+        Args: { usuario_id: string; admin_id: string }
+        Returns: boolean
+      }
+      reativar_usuario: {
+        Args: { usuario_id: string; admin_id: string }
         Returns: boolean
       }
       rejeitar_usuario: {
