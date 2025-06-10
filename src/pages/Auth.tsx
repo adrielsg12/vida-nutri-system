@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,7 +89,9 @@ export const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      console.log('Tentando criar conta para:', email);
+      
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -100,13 +101,49 @@ export const Auth = () => {
         }
       });
 
+      console.log('Resultado do signUp:', { data, error });
+
       if (error) {
+        console.error('Erro no signUp:', error);
         toast({
           title: "Erro ao criar conta",
           description: error.message,
           variant: "destructive",
         });
         return;
+      }
+
+      if (data.user) {
+        console.log('Usuário criado com sucesso:', data.user.id);
+        
+        // Aguardar um pouco para garantir que o trigger foi executado
+        setTimeout(async () => {
+          // Verificar se o perfil foi criado
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
+          
+          console.log('Perfil criado:', profile);
+          
+          if (profileError) {
+            console.error('Erro ao verificar perfil:', profileError);
+          }
+          
+          // Verificar se a aprovação foi criada
+          const { data: aprovacao, error: aprovacaoError } = await supabase
+            .from('aprovacoes_acesso')
+            .select('*')
+            .eq('user_id', data.user.id)
+            .single();
+          
+          console.log('Aprovação criada:', aprovacao);
+          
+          if (aprovacaoError) {
+            console.error('Erro ao verificar aprovação:', aprovacaoError);
+          }
+        }, 2000);
       }
 
       toast({

@@ -22,23 +22,37 @@ export const useAprovacoes = () => {
 
   const carregarAprovacoes = async () => {
     try {
+      console.log('Carregando aprovações...');
+      
       // Buscar aprovações e nomes dos usuários separadamente
       const { data: aprovacoesData, error: aprovacoesError } = await supabase
         .from('aprovacoes_acesso')
         .select('*')
         .order('data_solicitacao', { ascending: false });
 
-      if (aprovacoesError) throw aprovacoesError;
+      console.log('Aprovações encontradas:', aprovacoesData);
+
+      if (aprovacoesError) {
+        console.error('Erro ao buscar aprovações:', aprovacoesError);
+        throw aprovacoesError;
+      }
 
       if (aprovacoesData && aprovacoesData.length > 0) {
         // Buscar os perfis dos usuários
         const userIds = aprovacoesData.map(a => a.user_id);
+        console.log('Buscando perfis para usuários:', userIds);
+        
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('id, nome_completo')
           .in('id', userIds);
 
-        if (profilesError) throw profilesError;
+        console.log('Perfis encontrados:', profilesData);
+
+        if (profilesError) {
+          console.error('Erro ao buscar perfis:', profilesError);
+          throw profilesError;
+        }
 
         // Combinar os dados
         const aprovacoesComNomes = aprovacoesData.map(aprovacao => {
@@ -49,8 +63,10 @@ export const useAprovacoes = () => {
           };
         });
 
+        console.log('Aprovações com nomes:', aprovacoesComNomes);
         setAprovacoes(aprovacoesComNomes);
       } else {
+        console.log('Nenhuma aprovação encontrada');
         setAprovacoes([]);
       }
     } catch (error) {
@@ -67,13 +83,18 @@ export const useAprovacoes = () => {
 
   const aprovarUsuario = async (userId: string, aprovacaoId: string) => {
     try {
+      console.log('Aprovando usuário:', { userId, aprovacaoId });
+      
       const { error } = await supabase.rpc('aprovar_usuario', {
         usuario_id: userId,
         aprovador_id: user?.id,
         observacoes_param: observacoes[aprovacaoId] || null
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro na função aprovar_usuario:', error);
+        throw error;
+      }
 
       toast({
         title: "Usuário aprovado",
@@ -93,13 +114,18 @@ export const useAprovacoes = () => {
 
   const rejeitarUsuario = async (userId: string, aprovacaoId: string) => {
     try {
+      console.log('Rejeitando usuário:', { userId, aprovacaoId });
+      
       const { error } = await supabase.rpc('rejeitar_usuario', {
         usuario_id: userId,
         aprovador_id: user?.id,
         observacoes_param: observacoes[aprovacaoId] || null
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro na função rejeitar_usuario:', error);
+        throw error;
+      }
 
       toast({
         title: "Usuário rejeitado",
