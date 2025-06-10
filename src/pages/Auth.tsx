@@ -94,7 +94,6 @@ export const Auth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
           data: {
             nome_completo: nomeCompleto,
           }
@@ -111,8 +110,8 @@ export const Auth = () => {
       }
 
       toast({
-        title: "Conta criada com sucesso",
-        description: "Verifique seu email para confirmar a conta.",
+        title: "Conta criada com sucesso!",
+        description: "Aguarde o suporte liberar seu acesso ao sistema NutriSync.",
       });
 
       // Limpar formulário
