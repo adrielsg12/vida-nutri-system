@@ -13,6 +13,7 @@ interface AprovacaoAcesso {
   data_solicitacao: string;
   observacoes?: string;
   nome_completo?: string;
+  email?: string;
 }
 
 interface AprovacaoRowProps {
@@ -26,7 +27,7 @@ interface AprovacaoRowProps {
 const getStatusBadge = (status: string) => {
   switch (status) {
     case 'pendente':
-      return <Badge variant="outline">Pendente</Badge>;
+      return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Pendente</Badge>;
     case 'aprovado':
       return <Badge className="bg-green-100 text-green-800">Aprovado</Badge>;
     case 'rejeitado':
@@ -45,9 +46,16 @@ export const AprovacaoRow = ({
 }: AprovacaoRowProps) => {
   return (
     <TableRow>
-      <TableCell>{aprovacao.nome_completo || 'N/A'}</TableCell>
+      <TableCell className="font-medium">{aprovacao.nome_completo || 'N/A'}</TableCell>
+      <TableCell>{aprovacao.email || 'N/A'}</TableCell>
       <TableCell>
-        {new Date(aprovacao.data_solicitacao).toLocaleDateString('pt-BR')}
+        {new Date(aprovacao.data_solicitacao).toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })}
       </TableCell>
       <TableCell>{getStatusBadge(aprovacao.status)}</TableCell>
       <TableCell>
@@ -59,7 +67,7 @@ export const AprovacaoRow = ({
               placeholder="Adicione observações sobre a aprovação..."
               value={observacoes}
               onChange={(e) => onObservacoesChange(e.target.value)}
-              className="w-full"
+              className="w-full min-h-[60px]"
             />
           </div>
         ) : (

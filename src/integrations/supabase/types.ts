@@ -274,6 +274,7 @@ export type Database = {
           clinica: string | null
           created_at: string | null
           crn: string | null
+          email: string | null
           endereco: string | null
           estado: string | null
           id: string
@@ -288,6 +289,7 @@ export type Database = {
           clinica?: string | null
           created_at?: string | null
           crn?: string | null
+          email?: string | null
           endereco?: string | null
           estado?: string | null
           id: string
@@ -302,6 +304,7 @@ export type Database = {
           clinica?: string | null
           created_at?: string | null
           crn?: string | null
+          email?: string | null
           endereco?: string | null
           estado?: string | null
           id?: string
@@ -323,6 +326,21 @@ export type Database = {
           usuario_id: string
           aprovador_id: string
           observacoes_param?: string
+        }
+        Returns: boolean
+      }
+      atualizar_usuario_admin: {
+        Args: {
+          usuario_id: string
+          admin_id: string
+          novo_nome?: string
+          novo_email?: string
+          novo_crn?: string
+          novo_telefone?: string
+          novo_endereco?: string
+          nova_cidade?: string
+          novo_estado?: string
+          nova_clinica?: string
         }
         Returns: boolean
       }

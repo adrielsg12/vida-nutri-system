@@ -11,6 +11,7 @@ interface AprovacaoAcesso {
   data_solicitacao: string;
   observacoes?: string;
   nome_completo?: string;
+  email?: string;
 }
 
 export const useAprovacoes = () => {
@@ -38,13 +39,13 @@ export const useAprovacoes = () => {
       }
 
       if (aprovacoesData && aprovacoesData.length > 0) {
-        // Buscar os perfis dos usuários
+        // Buscar os perfis dos usuários incluindo email
         const userIds = aprovacoesData.map(a => a.user_id);
         console.log('Buscando perfis para usuários:', userIds);
         
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
-          .select('id, nome_completo')
+          .select('id, nome_completo, email')
           .in('id', userIds);
 
         console.log('Perfis encontrados:', profilesData);
@@ -59,7 +60,8 @@ export const useAprovacoes = () => {
           const profile = profilesData?.find(p => p.id === aprovacao.user_id);
           return {
             ...aprovacao,
-            nome_completo: profile?.nome_completo || 'Nome não encontrado'
+            nome_completo: profile?.nome_completo || 'Nome não encontrado',
+            email: profile?.email || 'Email não encontrado'
           };
         });
 

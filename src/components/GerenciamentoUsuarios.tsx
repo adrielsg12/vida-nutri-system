@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { Power, PowerOff, Eye, Users } from 'lucide-react';
+import { Power, PowerOff, Users } from 'lucide-react';
+import { EditarUsuarioDialog } from './EditarUsuarioDialog';
 
 interface Usuario {
   id: string;
@@ -27,25 +28,16 @@ export const GerenciamentoUsuarios = () => {
 
   const carregarUsuarios = async () => {
     try {
-      // Buscar perfis dos usuários
+      // Buscar perfis dos usuários aprovados
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, nome_completo, crn, telefone, status, created_at')
-        .neq('status', 'admin')
+        .select('id, nome_completo, email, crn, telefone, endereco, cidade, estado, clinica, status, created_at')
+        .in('status', ['aprovado', 'inativo'])
         .order('created_at', { ascending: false });
 
       if (profilesError) throw profilesError;
 
-      if (profilesData && profilesData.length > 0) {
-        // Buscar os e-mails dos usuários da tabela auth (via RPC ou através de uma view)
-        // Como não podemos acessar auth.users diretamente, vamos trabalhar só com os dados do profiles
-        setUsuarios(profilesData.map(profile => ({
-          ...profile,
-          email: 'Email não disponível' // Placeholder, pois não podemos acessar auth.users
-        })));
-      } else {
-        setUsuarios([]);
-      }
+      setUsuarios(profilesData || []);
     } catch (error) {
       console.error('Erro ao carregar usuários:', error);
       toast({
@@ -114,12 +106,8 @@ export const GerenciamentoUsuarios = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pendente':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Pendente</Badge>;
       case 'aprovado':
-        return <Badge className="bg-green-100 text-green-800">Aprovado</Badge>;
-      case 'rejeitado':
-        return <Badge variant="destructive">Rejeitado</Badge>;
+        return <Badge className="bg-green-100 text-green-800">Ativo</Badge>;
       case 'inativo':
         return <Badge variant="secondary" className="bg-gray-100 text-gray-800">Inativo</Badge>;
       default:
@@ -130,28 +118,36 @@ export const GerenciamentoUsuarios = () => {
   const getStatusActions = (usuario: Usuario) => {
     if (usuario.status === 'inativo') {
       return (
-        <Button
-          size="sm"
-          onClick={() => reativarUsuario(usuario.id)}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          <Power className="w-4 h-4 mr-1" />
-          Reativar
-        </Button>
+        <div className="flex space-x-2">
+          <Button
+            size="sm"
+            onClick={() => reativarUsuario(usuario.id)}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Power className="w-4 h-4 mr-1" />
+            Reativar
+          </Button>
+        </div>
       );
     } else if (usuario.status === 'aprovado') {
       return (
-        <Button
-          size="sm"
-          variant="destructive"
-          onClick={() => inativarUsuario(usuario.id)}
-        >
-          <PowerOff className="w-4 h-4 mr-1" />
-          Inativar
-        </Button>
+        <div className="flex space-x-2">
+          <EditarUsuarioDialog 
+            usuario={usuario} 
+            onUsuarioAtualizado={carregarUsuarios}
+          />
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => inativarUsuario(usuario.id)}
+          >
+            <PowerOff className="w-4 h-4 mr-1" />
+            Inativar
+          </Button>
+        </div>
       );
     }
-    return <span className="text-gray-500 text-sm">Sem ações</span>;
+    return null;
   };
 
   if (loading) {
@@ -178,6 +174,7 @@ export const GerenciamentoUsuarios = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
+              <TableHead>Email</TableHead>
               <TableHead>CRN</TableHead>
               <TableHead>Telefone</TableHead>
               <TableHead>Data de Cadastro</TableHead>
@@ -189,6 +186,7 @@ export const GerenciamentoUsuarios = () => {
             {usuarios.map((usuario) => (
               <TableRow key={usuario.id}>
                 <TableCell className="font-medium">{usuario.nome_completo}</TableCell>
+                <TableCell>{usuario.email || 'Não informado'}</TableCell>
                 <TableCell>{usuario.crn || 'Não informado'}</TableCell>
                 <TableCell>{usuario.telefone || 'Não informado'}</TableCell>
                 <TableCell>

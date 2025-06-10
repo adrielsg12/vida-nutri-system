@@ -10,6 +10,7 @@ interface AprovacaoAcesso {
   data_solicitacao: string;
   observacoes?: string;
   nome_completo?: string;
+  email?: string;
 }
 
 interface AprovacoesTableProps {
@@ -32,6 +33,7 @@ export const AprovacoesTable = ({
       <TableHeader>
         <TableRow>
           <TableHead>Nome</TableHead>
+          <TableHead>Email</TableHead>
           <TableHead>Data da Solicitação</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Observações</TableHead>

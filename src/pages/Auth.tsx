@@ -116,8 +116,19 @@ export const Auth = () => {
       if (data.user) {
         console.log('Usuário criado com sucesso:', data.user.id);
         
-        // Aguardar um pouco para garantir que o trigger foi executado
+        // Atualizar o perfil com o email após a criação
         setTimeout(async () => {
+          try {
+            await supabase
+              .from('profiles')
+              .update({ email: email })
+              .eq('id', data.user.id);
+            
+            console.log('Email adicionado ao perfil');
+          } catch (error) {
+            console.error('Erro ao atualizar email no perfil:', error);
+          }
+
           // Verificar se o perfil foi criado
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
