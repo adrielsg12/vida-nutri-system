@@ -151,7 +151,7 @@ export const PlanoAlimentarFormDialog = ({
         data_fim: formData.data_fim || null,
         status: formData.status,
       })
-      .eq("id", plan...
+      .eq("id", plano.id);
     if (planoError) {
       toast({ title: "Erro", description: "Erro ao salvar plano.", variant: "destructive" });
       setSaving(false); return;
