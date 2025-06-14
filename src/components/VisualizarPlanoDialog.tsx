@@ -28,6 +28,9 @@ import { SubstituicaoAlimentoDialog } from './SubstituicaoAlimentoDialog';
 import { EditarPlanoAlimentarDialog } from './EditarPlanoAlimentarDialog';
 import { Edit } from "lucide-react";
 import { PlanoAlimentarFormDialog } from './PlanoAlimentarFormDialog';
+import { MessageCircle } from "lucide-react";
+import { useAlimentosList } from "@/hooks/useAlimentosList";
+import { formatPlanoToWhatsapp } from "@/utils/formatPlanoToWhatsapp";
 
 interface PlanoAlimentar {
   id: string;
@@ -39,6 +42,7 @@ interface PlanoAlimentar {
   pacientes: {
     id: string;
     nome: string;
+    telefone?: string;
   };
   itens_plano_alimentar: ItemPlano[];
 }
@@ -81,6 +85,9 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
   const [showFormEditar, setShowFormEditar] = useState(false);
   
   const { toast } = useToast();
+  // Buscar os alimentos para associar no envio do WhatsApp
+  const { alimentos } = useAlimentosList(open);
+
   const { user } = useAuth();
 
   const diasSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
@@ -100,7 +107,7 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
           status,
           data_inicio,
           data_fim,
-          pacientes!inner(id, nome),
+          pacientes!inner(id, nome, telefone),
           itens_plano_alimentar(
             id,
             dia_semana,
@@ -262,6 +269,37 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
     }
   };
 
+  // Função para enviar WhatsApp
+  const handleEnviarWhatsApp = () => {
+    if (!plano?.pacientes || !plano.pacientes.id) {
+      toast({ title: "Paciente não encontrado", description: "Este plano não possui paciente associado.", variant: "destructive" });
+      return;
+    }
+    // Buscar telefone do paciente do banco/contexto
+    const pacienteTelefone = plano.pacientes.telefone || ""; // Pode precisar ajustar se dados de telefone não estiverem presentes
+    if (!pacienteTelefone) {
+      toast({ title: "Telefone não encontrado", description: "O paciente não possui número de telefone cadastrado.", variant: "destructive" });
+      return;
+    }
+    const telefone = pacienteTelefone.replace(/\D/g, '');
+    const mensagem = encodeURIComponent(formatPlanoToWhatsapp({
+      titulo: plano.titulo,
+      descricao: plano.descricao,
+      itens_plano_alimentar: plano.itens_plano_alimentar.map(item => ({
+        dia_semana: item.dia_semana,
+        refeicao: item.refeicao,
+        quantidade: item.quantidade,
+        unidade_medida: item.unidade_medida,
+        alimento_id: item.alimentos?.id ?? "",
+        horario_recomendado: item.horario_recomendado,
+        observacoes: item.observacoes || ""
+      }))
+    }, alimentos));
+    const url = `https://wa.me/55${telefone}?text=${mensagem}`;
+    window.open(url, '_blank');
+    toast({ title: "WhatsApp Aberto", description: "O WhatsApp Web foi aberto em uma nova aba." });
+  };
+
   if (loading) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
@@ -320,6 +358,18 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
               </div>
               
               <div className='flex gap-2'>
+                {/* WhatsApp Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-green-600 hover:text-green-700"
+                  onClick={handleEnviarWhatsApp}
+                  title="Enviar via WhatsApp"
+                  type="button"
+                >
+                  <MessageCircle className="w-4 h-4 mr-1" />
+                  WhatsApp
+                </Button>
                 {/* Edit Button */}
                 <Button
                   variant="outline"
