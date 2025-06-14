@@ -16,6 +16,7 @@ export const Auth = () => {
   const [nomeCompleto, setNomeCompleto] = useState('');
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [tipoUsuario, setTipoUsuario] = useState<'paciente' | 'nutricionista'>('paciente');
 
   useEffect(() => {
     // Verificar se já está logado
@@ -97,6 +98,7 @@ export const Auth = () => {
         options: {
           data: {
             nome_completo: nomeCompleto,
+            tipo_usuario: tipoUsuario,
           }
         }
       });
@@ -186,7 +188,7 @@ export const Auth = () => {
           <h2 className="text-4xl font-bold text-gray-900 mb-2">
             NutriSync
           </h2>
-          <p className="mt-4 text-gray-600">Gerencie seus pacientes com tecnologia avançada</p>
+          <p className="mt-4 text-gray-600">Gerencie pacientes e planos alimentares com tecnologia!</p>
         </div>
 
         <Card className="shadow-lg">
@@ -253,6 +255,25 @@ export const Auth = () => {
                       placeholder="Seu nome completo"
                       required
                     />
+                  </div>
+                  <div>
+                    <Label htmlFor="tipo-usuario">Você é:</Label>
+                    <div className="flex gap-4 mt-1">
+                      <button
+                        type="button"
+                        onClick={() => setTipoUsuario('paciente')}
+                        className={`flex-1 py-2 rounded-md border ${tipoUsuario === 'paciente' ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-gray-700 border-gray-300'} transition`}
+                      >
+                        Paciente
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTipoUsuario('nutricionista')}
+                        className={`flex-1 py-2 rounded-md border ${tipoUsuario === 'nutricionista' ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-gray-700 border-gray-300'} transition`}
+                      >
+                        Nutricionista
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor="email-signup">Email</Label>
