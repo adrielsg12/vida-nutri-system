@@ -354,6 +354,7 @@ export const Pacientes = () => {
       {/* Dialogs */}
       {showNewPatientForm && (
         <NovoPatientForm 
+          open={showNewPatientForm}
           onClose={() => setShowNewPatientForm(false)}
           onSuccess={() => {
             setShowNewPatientForm(false);
