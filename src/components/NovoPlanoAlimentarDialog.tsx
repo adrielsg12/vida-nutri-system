@@ -26,6 +26,7 @@ import { useAuth } from '@/hooks/useAuth';
 interface Paciente {
   id: string;
   nome: string;
+  email?: string;
 }
 
 interface NovoPlanoAlimentarDialogProps {
@@ -33,84 +34,92 @@ interface NovoPlanoAlimentarDialogProps {
   onClose: () => void;
   onSuccess: () => void;
   pacientes: Paciente[];
+  pacienteSelecionado?: string;
 }
 
 export const NovoPlanoAlimentarDialog = ({ 
   open, 
   onClose, 
   onSuccess, 
-  pacientes 
+  pacientes,
+  pacienteSelecionado 
 }: NovoPlanoAlimentarDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     titulo: '',
-    paciente_id: '',
+    descricao: '',
+    paciente_id: pacienteSelecionado || '',
     data_inicio: '',
     data_fim: '',
-    descricao: ''
+    status: 'ativo'
   });
   
   const { toast } = useToast();
   const { user } = useAuth();
 
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    setLoading(true);
+    if (!formData.titulo || !formData.paciente_id) {
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
-      if (!formData.titulo || !formData.paciente_id) {
-        toast({
-          title: "Campos obrigatórios",
-          description: "Preencha título e selecione um paciente.",
-          variant: "destructive",
-        });
-        return;
-      }
-
+      setLoading(true);
+      
       const { error } = await supabase
         .from('planos_alimentares')
         .insert({
-          nutricionista_id: user.id,
-          paciente_id: formData.paciente_id,
           titulo: formData.titulo,
-          descricao: formData.descricao || null,
+          descricao: formData.descricao,
+          paciente_id: formData.paciente_id,
+          nutricionista_id: user.id,
           data_inicio: formData.data_inicio || null,
           data_fim: formData.data_fim || null,
-          status: 'ativo'
+          status: formData.status
         });
 
-      if (error) {
-        console.error('Erro ao criar plano:', error);
-        toast({
-          title: "Erro ao criar plano",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
-      }
+      if (error) throw error;
 
       toast({
-        title: "Plano criado",
-        description: "O plano alimentar foi criado com sucesso.",
+        title: "Sucesso",
+        description: "Plano alimentar criado com sucesso!",
       });
 
+      // Reset form
       setFormData({
         titulo: '',
-        paciente_id: '',
+        descricao: '',
+        paciente_id: pacienteSelecionado || '',
         data_inicio: '',
         data_fim: '',
-        descricao: ''
+        status: 'ativo'
       });
 
       onSuccess();
-      onClose();
     } catch (error) {
-      console.error('Erro inesperado:', error);
+      console.error('Erro ao criar plano:', error);
       toast({
-        title: "Erro inesperado",
-        description: "Ocorreu um erro ao criar o plano alimentar.",
+        title: "Erro",
+        description: "Erro ao criar plano alimentar.",
         variant: "destructive",
       });
     } finally {
@@ -120,22 +129,23 @@ export const NovoPlanoAlimentarDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Criar Novo Plano Alimentar</DialogTitle>
+          <DialogTitle>Novo Plano Alimentar</DialogTitle>
           <DialogDescription>
-            Preencha as informações para criar um novo plano alimentar.
+            Crie um novo plano alimentar para o paciente
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="titulo">Título do Plano *</Label>
             <Input
               id="titulo"
-              placeholder="Ex: Plano de Emagrecimento - Janeiro 2024"
               value={formData.titulo}
-              onChange={(e) => setFormData({...formData, titulo: e.target.value})}
+              onChange={(e) => handleInputChange('titulo', e.target.value)}
+              placeholder="Ex: Plano para emagrecimento"
+              required
             />
           </div>
 
@@ -143,10 +153,11 @@ export const NovoPlanoAlimentarDialog = ({
             <Label htmlFor="paciente">Paciente *</Label>
             <Select 
               value={formData.paciente_id} 
-              onValueChange={(value) => setFormData({...formData, paciente_id: value})}
+              onValueChange={(value) => handleInputChange('paciente_id', value)}
+              disabled={!!pacienteSelecionado}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecione um paciente" />
+                <SelectValue placeholder="Selecione o paciente" />
               </SelectTrigger>
               <SelectContent>
                 {pacientes.map((paciente) => (
@@ -158,6 +169,17 @@ export const NovoPlanoAlimentarDialog = ({
             </Select>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="descricao">Descrição</Label>
+            <Textarea
+              id="descricao"
+              value={formData.descricao}
+              onChange={(e) => handleInputChange('descricao', e.target.value)}
+              placeholder="Descreva os objetivos do plano..."
+              rows={3}
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="data_inicio">Data de Início</Label>
@@ -165,7 +187,7 @@ export const NovoPlanoAlimentarDialog = ({
                 id="data_inicio"
                 type="date"
                 value={formData.data_inicio}
-                onChange={(e) => setFormData({...formData, data_inicio: e.target.value})}
+                onChange={(e) => handleInputChange('data_inicio', e.target.value)}
               />
             </div>
 
@@ -175,20 +197,9 @@ export const NovoPlanoAlimentarDialog = ({
                 id="data_fim"
                 type="date"
                 value={formData.data_fim}
-                onChange={(e) => setFormData({...formData, data_fim: e.target.value})}
-                min={formData.data_inicio}
+                onChange={(e) => handleInputChange('data_fim', e.target.value)}
               />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="descricao">Descrição</Label>
-            <Textarea
-              id="descricao"
-              placeholder="Descrição opcional do plano alimentar..."
-              value={formData.descricao}
-              onChange={(e) => setFormData({...formData, descricao: e.target.value})}
-            />
           </div>
 
           <DialogFooter>

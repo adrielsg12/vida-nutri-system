@@ -32,7 +32,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { UserCheck, UserX } from 'lucide-react';
+import { UserCheck, UserX, ChefHat } from 'lucide-react';
+import { NovoPlanoAlimentarDialog } from '@/components/NovoPlanoAlimentarDialog';
 
 interface Patient {
   id: string;
@@ -66,6 +67,7 @@ export const FichaPacienteDialog = ({ open, onClose, patientId, onSuccess }: Fic
   const [editing, setEditing] = useState(false);
   const [patient, setPatient] = useState<Patient | null>(null);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [showNovoPlano, setShowNovoPlano] = useState(false);
   const { toast } = useToast();
 
   const fetchPatient = async () => {
@@ -241,6 +243,15 @@ export const FichaPacienteDialog = ({ open, onClose, patientId, onSuccess }: Fic
                 >
                   {patient.status === 'ativo' ? 'Ativo' : 'Inativo'}
                 </Badge>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowNovoPlano(true)}
+                  className="flex items-center gap-2"
+                >
+                  <ChefHat className="h-4 w-4" />
+                  Plano Alimentar
+                </Button>
                 <Button
                   variant={patient.status === 'ativo' ? 'destructive' : 'default'}
                   size="sm"
@@ -505,6 +516,22 @@ export const FichaPacienteDialog = ({ open, onClose, patientId, onSuccess }: Fic
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {showNovoPlano && (
+        <NovoPlanoAlimentarDialog 
+          open={showNovoPlano}
+          onClose={() => setShowNovoPlano(false)}
+          onSuccess={() => {
+            setShowNovoPlano(false);
+            toast({
+              title: "Plano criado",
+              description: "Plano alimentar criado com sucesso!",
+            });
+          }}
+          pacientes={[{ id: patient.id, nome: patient.nome, email: patient.email }]}
+          pacienteSelecionado={patient.id}
+        />
+      )}
     </>
   );
 };
