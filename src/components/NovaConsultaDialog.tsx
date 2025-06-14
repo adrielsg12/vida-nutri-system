@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -152,6 +151,48 @@ export const NovaConsultaDialog = ({ open, onClose, onSuccess }: NovaConsultaDia
     }
   };
 
+  // Função para envio do email por Edge Function
+  const sendConfirmationEmail = async () => {
+    // Busca o paciente selecionado
+    const selectedPatient = patients.find(p => p.id === formData.paciente_id);
+    if (!selectedPatient) {
+      toast({ title: "Erro", description: "Selecione o paciente antes de enviar.", variant: "destructive" });
+      return;
+    }
+    if (!formData.data || !formData.hora) {
+      toast({ title: "Erro", description: "Informe data e horário.", variant: "destructive" });
+      return;
+    }
+
+    // Monta os dados
+    const data = {
+      to: selectedPatient.email,
+      name: selectedPatient.nome,
+      date: new Date(formData.data).toLocaleDateString("pt-BR"),
+      time: formData.hora,
+      type: formData.tipo,
+      value: formData.valor,
+      notes: formData.observacoes || ""
+    };
+
+    try {
+      toast({ title: "Enviando...", description: "Enviando confirmação para o paciente..." });
+      const response = await fetch("https://zychuiupgxvtdqtzodrn.functions.supabase.co/send-consultation-confirmation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      const result = await response.json();
+      if (result.success) {
+        toast({ title: "Confirmação enviada!", description: "Paciente recebeu o e-mail de confirmação." });
+      } else {
+        throw new Error(result.error || "Erro desconhecido no envio.");
+      }
+    } catch (err: any) {
+      toast({ title: "Erro!", description: err.message || "Não foi possível enviar o e-mail.", variant: "destructive" });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -253,6 +294,14 @@ export const NovaConsultaDialog = ({ open, onClose, onSuccess }: NovaConsultaDia
               className="bg-emerald-600 hover:bg-emerald-700"
             >
               {loading ? 'Agendando...' : 'Agendar Consulta'}
+            </Button>
+            <Button 
+              type="button"
+              variant="secondary"
+              onClick={sendConfirmationEmail}
+              disabled={!formData.paciente_id || !formData.data || !formData.hora}
+            >
+              Enviar Confirmação ao Paciente
             </Button>
           </DialogFooter>
         </form>
