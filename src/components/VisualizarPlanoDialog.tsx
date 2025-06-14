@@ -36,6 +36,7 @@ interface PlanoAlimentar {
   data_inicio?: string;
   data_fim?: string;
   pacientes: {
+    id: string;
     nome: string;
   };
   itens_plano_alimentar: ItemPlano[];
@@ -97,7 +98,7 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
           status,
           data_inicio,
           data_fim,
-          pacientes!inner(nome),
+          pacientes!inner(id, nome),
           itens_plano_alimentar(
             id,
             dia_semana,
