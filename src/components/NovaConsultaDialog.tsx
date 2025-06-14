@@ -25,6 +25,7 @@ interface Patient {
   id: string;
   nome: string;
   email?: string; // Added email
+  telefone?: string;
 }
 
 interface NovaConsultaDialogProps {
@@ -54,7 +55,7 @@ export const NovaConsultaDialog = ({ open, onClose, onSuccess }: NovaConsultaDia
 
       const { data, error } = await supabase
         .from('pacientes')
-        .select('id, nome, email') // Now fetch email too
+        .select('id, nome, email, telefone') // Now fetch email too
         .eq('nutricionista_id', user.id)
         .eq('status', 'ativo')
         .order('nome');
@@ -204,6 +205,48 @@ export const NovaConsultaDialog = ({ open, onClose, onSuccess }: NovaConsultaDia
     }
   };
 
+  // Buscar paciente selecionado com telefone
+  const selectedPatient = patients.find(p => p.id === formData.paciente_id);
+
+  // Função para formatar o texto da confirmação
+  const formatConsultaToWhatsapp = () => {
+    const dataBR = formData.data ? new Date(formData.data).toLocaleDateString("pt-BR") : '';
+    let txt = `Olá${selectedPatient ? `, ${selectedPatient.nome}` : ''}! Sua consulta está confirmada para ${dataBR} às ${formData.hora}.`;
+    txt += `\nTipo: ${formData.tipo === 'presencial' ? 'Presencial' : 'Online'}`;
+    if (formData.valor) txt += `\nValor: R$ ${formData.valor}`;
+    if (formData.observacoes) txt += `\nObs: ${formData.observacoes}`;
+    txt += "\nQualquer dúvida, estou à disposição!";
+    return txt;
+  };
+
+  // Função para abrir whatsapp com mensagem de confirmação
+  const handleEnviarConfirmacaoWhatsapp = () => {
+    if (!selectedPatient || !selectedPatient.telefone) {
+      toast({
+        title: "Telefone não encontrado",
+        description: "Selecione o paciente e cadastre um telefone válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!formData.data || !formData.hora) {
+      toast({
+        title: "Data/hora faltando",
+        description: "Informe a data e hora da consulta.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const telefone = selectedPatient.telefone.replace(/\D/g, '');
+    const mensagem = encodeURIComponent(formatConsultaToWhatsapp());
+    const url = `https://wa.me/55${telefone}?text=${mensagem}`;
+    window.open(url, '_blank');
+    toast({
+      title: "WhatsApp Aberto",
+      description: "O WhatsApp Web foi aberto em uma nova aba.",
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -312,7 +355,15 @@ export const NovaConsultaDialog = ({ open, onClose, onSuccess }: NovaConsultaDia
               onClick={sendConfirmationEmail}
               disabled={!formData.paciente_id || !formData.data || !formData.hora}
             >
-              Enviar Confirmação ao Paciente
+              Enviar Confirmação ao Paciente (E-mail)
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleEnviarConfirmacaoWhatsapp}
+              disabled={!formData.paciente_id || !formData.data || !formData.hora}
+            >
+              Enviar Confirmação via WhatsApp
             </Button>
           </DialogFooter>
         </form>

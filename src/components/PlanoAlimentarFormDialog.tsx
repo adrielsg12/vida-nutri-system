@@ -13,6 +13,7 @@ interface Paciente {
   id: string;
   nome: string;
   email?: string;
+  telefone: string;
 }
 interface Alimento {
   id: string;
@@ -202,6 +203,50 @@ export const PlanoAlimentarFormDialog = ({
     onClose();
   };
 
+  // Helper para buscar paciente selecionado
+  const paciente = pacientes.find(p => p.id === formData.paciente_id);
+
+  // Função para formatar o plano alimentar como texto para WhatsApp
+  const formatPlanoToWhatsapp = () => {
+    let texto = `🍎 *Seu Plano Alimentar*\n\n`;
+    if (formData.titulo) texto += `*${formData.titulo}*\n`;
+    if (formData.descricao) texto += `${formData.descricao}\n\n`;
+
+    // Se possível, organizar por dia
+    texto += DIAS.map((dia, diaIdx) => {
+      const items = formData.itens_plano_alimentar.filter(i => i.dia_semana === diaIdx);
+      if (items.length === 0) return '';
+      let str = `*${dia}:*\n`;
+      str += items.map(item => {
+        const alimento = alimentos.find(a => a.id === item.alimento_id);
+        const alimentoNome = alimento ? alimento.nome : "Alimento";
+        return `- ${item.refeicao}: ${item.quantidade} ${item.unidade_medida} de ${alimentoNome}${item.horario_recomendado ? ` às ${item.horario_recomendado}` : ''}${item.observacoes ? ` (${item.observacoes})` : ''}`;
+      }).join('\n');
+      return str + '\n';
+    }).join('\n');
+    return texto.trim();
+  };
+
+  // Função para abrir o WhatsApp do paciente com o plano
+  const handleEnviarWhatsApp = () => {
+    if (!paciente || !paciente.telefone) {
+      toast({
+        title: "Telefone não encontrado",
+        description: "O paciente não possui número de telefone cadastrado.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const telefone = paciente.telefone.replace(/\D/g, '');
+    const mensagem = encodeURIComponent(formatPlanoToWhatsapp());
+    const url = `https://wa.me/55${telefone}?text=${mensagem}`;
+    window.open(url, '_blank');
+    toast({
+      title: "WhatsApp Aberto",
+      description: "O WhatsApp Web foi aberto em uma nova aba.",
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -281,11 +326,21 @@ export const PlanoAlimentarFormDialog = ({
               </SelectContent>
             </Select>
           </div>
-          <div className="flex justify-between items-center mt-4">
+          <div className="flex flex-wrap justify-between items-center mt-4 gap-2">
             <h3 className="font-bold">Itens do Plano Alimentar</h3>
-            <Button type="button" variant="outline" onClick={handleAddItem}>
-              + Adicionar Alimento
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleEnviarWhatsApp}
+                disabled={!paciente || !paciente.telefone || formData.itens_plano_alimentar.length === 0}
+              >
+                Enviar via WhatsApp
+              </Button>
+              <Button type="button" variant="outline" onClick={handleAddItem}>
+                + Adicionar Alimento
+              </Button>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <Table>
