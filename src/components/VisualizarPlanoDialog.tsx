@@ -27,6 +27,7 @@ import { Calculator, Clock, ArrowRightLeft, Trash2, User } from 'lucide-react';
 import { SubstituicaoAlimentoDialog } from './SubstituicaoAlimentoDialog';
 import { EditarPlanoAlimentarDialog } from './EditarPlanoAlimentarDialog';
 import { Edit } from "lucide-react";
+import { PlanoAlimentarFormDialog } from './PlanoAlimentarFormDialog';
 
 interface PlanoAlimentar {
   id: string;
@@ -77,6 +78,7 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
   const [itemParaSubstituir, setItemParaSubstituir] = useState<string | null>(null);
   const [showEditar, setShowEditar] = useState(false);
   const [pacientes, setPacientes] = useState<any[]>([]);
+  const [showFormEditar, setShowFormEditar] = useState(false);
   
   const { toast } = useToast();
   const { user } = useAuth();
@@ -323,7 +325,7 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
                   variant="outline"
                   size="sm"
                   className="text-blue-600 hover:text-blue-700"
-                  onClick={() => setShowEditar(true)}
+                  onClick={() => setShowFormEditar(true)}
                 >
                   <Edit className="w-4 h-4 mr-1" />
                   Editar
@@ -464,6 +466,39 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Editor completo do plano alimentar */}
+      {plano && (
+        <PlanoAlimentarFormDialog
+          open={showFormEditar}
+          onClose={() => setShowFormEditar(false)}
+          plano={{
+            id: plano.id,
+            titulo: plano.titulo,
+            descricao: plano.descricao,
+            paciente_id: plano.pacientes?.id || "",
+            data_inicio: plano.data_inicio || "",
+            data_fim: plano.data_fim || "",
+            status: plano.status,
+            itens_plano_alimentar: plano.itens_plano_alimentar.map(item => ({
+              id: item.id,
+              dia_semana: item.dia_semana,
+              refeicao: item.refeicao,
+              quantidade: item.quantidade,
+              unidade_medida: item.unidade_medida,
+              alimento_id: item.alimentos.id,
+              horario_recomendado: item.horario_recomendado,
+              observacoes: item.observacoes || ""
+            }))
+          }}
+          pacientes={pacientes}
+          onSuccess={() => {
+            setShowFormEditar(false);
+            carregarPlano();
+          }}
+        />
+      )}
+
       {/* Dialog de Editar */}
       {plano && (
         <EditarPlanoAlimentarDialog
