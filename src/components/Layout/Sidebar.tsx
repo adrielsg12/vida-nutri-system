@@ -1,125 +1,62 @@
-
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Calendar, 
+import {
+  BarChart3,
+  Calendar,
   ChefHat,
-  DollarSign, 
-  MessageCircle, 
+  DollarSign,
+  MessageSquare,
   Settings,
-  LogOut
+  Users,
+  Search
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { useLocation, Link } from 'react-router-dom';
 
-const menuItems = [
-  {
-    title: 'Dashboard',
-    href: '/',
-    icon: LayoutDashboard,
-  },
-  {
-    title: 'Pacientes',
-    href: '/pacientes',
-    icon: Users,
-  },
-  {
-    title: 'Consultas',
-    href: '/consultas',
-    icon: Calendar,
-  },
-  {
-    title: 'Planos Alimentares',
-    href: '/planos-alimentares',
-    icon: ChefHat,
-  },
-  {
-    title: 'Financeiro',
-    href: '/financeiro',
-    icon: DollarSign,
-  },
-  {
-    title: 'Comunicação',
-    href: '/comunicacao',
-    icon: MessageCircle,
-  },
-  {
-    title: 'Configurações',
-    href: '/configuracoes',
-    icon: Settings,
-  },
-];
+interface NavItemProps {
+  name: string;
+  href: string;
+  icon: React.ComponentType<any>;
+  current: boolean;
+}
 
-export const Sidebar = () => {
+const NavItem: React.FC<NavItemProps> = ({ name, href, icon: Icon, current }) => {
+  return (
+    <li>
+      <Link
+        to={href}
+        className={`flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 ${
+          current ? 'bg-gray-100' : ''
+        }`}
+      >
+        <Icon className={`w-5 h-5 text-gray-500 ${current ? 'text-gray-900' : ''}`} />
+        <span className="ml-3">{name}</span>
+      </Link>
+    </li>
+  );
+};
+
+export const Sidebar: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { toast } = useToast();
 
-  const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      navigate('/auth');
-      toast({
-        title: "Logout realizado",
-        description: "Você foi desconectado com sucesso.",
-      });
-    } catch (error) {
-      console.error('Erro ao fazer logout:', error);
-      toast({
-        title: "Erro no logout",
-        description: "Ocorreu um erro ao tentar desconectar.",
-        variant: "destructive",
-      });
-    }
-  };
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: BarChart3, current: location.pathname === '/dashboard' },
+    { name: 'Pacientes', href: '/pacientes', icon: Users, current: location.pathname === '/pacientes' },
+    { name: 'Consultas', href: '/consultas', icon: Calendar, current: location.pathname === '/consultas' },
+    { name: 'Planos Alimentares', href: '/planos-alimentares', icon: ChefHat, current: location.pathname === '/planos-alimentares' },
+    { name: 'Pesquisa de Alimentos', href: '/pesquisa-alimentos', icon: Search, current: location.pathname === '/pesquisa-alimentos' },
+    { name: 'Financeiro', href: '/financeiro', icon: DollarSign, current: location.pathname === '/financeiro' },
+    { name: 'Comunicação', href: '/comunicacao', icon: MessageSquare, current: location.pathname === '/comunicacao' },
+    { name: 'Configurações', href: '/configuracoes', icon: Settings, current: location.pathname === '/configuracoes' },
+  ];
 
   return (
-    <div className="flex h-full w-64 flex-col bg-gray-50 border-r">
-      {/* Logo */}
-      <div className="flex h-16 items-center justify-center border-b bg-white">
-        <h1 className="text-xl font-bold text-emerald-600">NutriSync</h1>
+    <aside className="w-64" aria-label="Sidebar">
+      <div className="overflow-y-auto h-full py-4 px-3 bg-gray-50 rounded">
+        <ul className="space-y-2">
+          {navigation.map((item) => (
+            <NavItem key={item.name} {...item} />
+          ))}
+        </ul>
       </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1 p-4">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.href;
-          
-          return (
-            <Link
-              key={item.href}
-              to={item.href}
-              className={cn(
-                'flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                isActive
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-              )}
-            >
-              <Icon className="mr-3 h-5 w-5" />
-              {item.title}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Logout Button */}
-      <div className="p-4 border-t">
-        <button
-          onClick={handleLogout}
-          className="flex w-full items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors"
-        >
-          <LogOut className="mr-3 h-5 w-5" />
-          Sair
-        </button>
-      </div>
-    </div>
+    </aside>
   );
 };

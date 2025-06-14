@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -10,32 +8,36 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2, Calculator, Clock, ChefHat } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { Calculator, Clock, ArrowRightLeft, Trash2, User } from 'lucide-react';
+import { SubstituicaoAlimentoDialog } from './SubstituicaoAlimentoDialog';
 
-interface Alimento {
+interface PlanoAlimentar {
   id: string;
-  nome: string;
-  calorias_por_100g: number;
-  proteinas_por_100g: number;
-  carboidratos_por_100g: number;
-  gorduras_por_100g: number;
+  titulo: string;
+  descricao?: string;
+  status: string;
+  data_inicio?: string;
+  data_fim?: string;
+  pacientes: {
+    nome: string;
+  };
+  itens_plano_alimentar: ItemPlano[];
 }
 
 interface ItemPlano {
@@ -44,21 +46,18 @@ interface ItemPlano {
   refeicao: string;
   quantidade: number;
   unidade_medida: string;
-  horario_recomendado?: string;
   observacoes?: string;
+  horario_recomendado?: string;
   ordem: number;
-  alimentos: Alimento;
-}
-
-interface PlanoAlimentar {
-  id: string;
-  titulo: string;
-  descricao?: string;
-  data_inicio?: string;
-  data_fim?: string;
-  status: string;
-  pacientes: {
+  alimentos: {
+    id: string;
     nome: string;
+    categoria: string;
+    calorias_por_100g: number;
+    proteinas_por_100g: number;
+    carboidratos_por_100g: number;
+    gorduras_por_100g: number;
+    fibras_por_100g: number;
   };
 }
 
@@ -68,129 +67,66 @@ interface VisualizarPlanoDialogProps {
   planoId: string;
 }
 
-const diasSemana = [
-  { valor: 1, nome: 'Segunda-feira' },
-  { valor: 2, nome: 'Terça-feira' },
-  { valor: 3, nome: 'Quarta-feira' },
-  { valor: 4, nome: 'Quinta-feira' },
-  { valor: 5, nome: 'Sexta-feira' },
-  { valor: 6, nome: 'Sábado' },
-  { valor: 0, nome: 'Domingo' }
-];
-
-const refeicoes = [
-  { valor: 'cafe_manha', nome: 'Café da manhã' },
-  { valor: 'lanche_manha', nome: 'Lanche da manhã' },
-  { valor: 'almoco', nome: 'Almoço' },
-  { valor: 'lanche_tarde', nome: 'Lanche da tarde' },
-  { valor: 'pre_treino', nome: 'Pré-treino' },
-  { valor: 'pos_treino', nome: 'Pós-treino' },
-  { valor: 'jantar', nome: 'Jantar' },
-  { valor: 'ceia', nome: 'Ceia' }
-];
-
 export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlanoDialogProps) => {
   const [plano, setPlano] = useState<PlanoAlimentar | null>(null);
-  const [itens, setItens] = useState<ItemPlano[]>([]);
-  const [alimentos, setAlimentos] = useState<Alimento[]>([]);
   const [loading, setLoading] = useState(false);
-  const [diaSelecionado, setDiaSelecionado] = useState(1);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [novoItem, setNovoItem] = useState({
-    refeicao: 'cafe_manha',
-    alimento_id: '',
-    quantidade: 100,
-    unidade_medida: 'g',
-    horario_recomendado: '',
-    observacoes: ''
-  });
-
+  const [showSubstituicao, setShowSubstituicao] = useState(false);
+  const [alimentoParaSubstituir, setAlimentoParaSubstituir] = useState<any>(null);
+  const [itemParaSubstituir, setItemParaSubstituir] = useState<string | null>(null);
+  
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  const carregarDados = async () => {
+  const diasSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+  const refeicoes = ['Café da manhã', 'Lanche da manhã', 'Almoço', 'Lanche da tarde', 'Jantar', 'Ceia'];
+
+  const carregarPlano = async () => {
     if (!planoId) return;
-    
+
     setLoading(true);
     try {
-      console.log('Carregando dados do plano:', planoId);
-
-      // Carregar dados do plano
-      const { data: planoData, error: planoError } = await supabase
+      const { data, error } = await supabase
         .from('planos_alimentares')
         .select(`
           id,
           titulo,
           descricao,
+          status,
           data_inicio,
           data_fim,
-          status,
-          pacientes (nome)
+          pacientes!inner(nome),
+          itens_plano_alimentar(
+            id,
+            dia_semana,
+            refeicao,
+            quantidade,
+            unidade_medida,
+            observacoes,
+            horario_recomendado,
+            ordem,
+            alimentos(
+              id,
+              nome,
+              categoria,
+              calorias_por_100g,
+              proteinas_por_100g,
+              carboidratos_por_100g,
+              gorduras_por_100g,
+              fibras_por_100g
+            )
+          )
         `)
         .eq('id', planoId)
         .single();
 
-      if (planoError) {
-        console.error('Erro ao carregar plano:', planoError);
-        throw planoError;
-      }
+      if (error) throw error;
 
-      console.log('Plano carregado:', planoData);
-
-      // Carregar itens do plano
-      const { data: itensData, error: itensError } = await supabase
-        .from('itens_plano_alimentar')
-        .select(`
-          id,
-          dia_semana,
-          refeicao,
-          quantidade,
-          unidade_medida,
-          horario_recomendado,
-          observacoes,
-          ordem,
-          alimentos (
-            id,
-            nome,
-            calorias_por_100g,
-            proteinas_por_100g,
-            carboidratos_por_100g,
-            gorduras_por_100g
-          )
-        `)
-        .eq('plano_id', planoId)
-        .order('dia_semana')
-        .order('refeicao')
-        .order('ordem');
-
-      if (itensError) {
-        console.error('Erro ao carregar itens:', itensError);
-        throw itensError;
-      }
-
-      console.log('Itens carregados:', itensData);
-
-      // Carregar biblioteca de alimentos
-      const { data: alimentosData, error: alimentosError } = await supabase
-        .from('alimentos')
-        .select('id, nome, calorias_por_100g, proteinas_por_100g, carboidratos_por_100g, gorduras_por_100g')
-        .or('is_publico.eq.true,nutricionista_id.eq.' + (await supabase.auth.getUser()).data.user?.id)
-        .order('nome');
-
-      if (alimentosError) {
-        console.error('Erro ao carregar alimentos:', alimentosError);
-        throw alimentosError;
-      }
-
-      console.log('Alimentos carregados:', alimentosData);
-
-      setPlano(planoData);
-      setItens(itensData || []);
-      setAlimentos(alimentosData || []);
+      setPlano(data);
     } catch (error) {
       console.error('Erro ao carregar plano:', error);
       toast({
         title: "Erro",
-        description: "Erro ao carregar dados do plano alimentar.",
+        description: "Erro ao carregar detalhes do plano alimentar.",
         variant: "destructive",
       });
     } finally {
@@ -198,126 +134,110 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
     }
   };
 
-  useEffect(() => {
-    if (open && planoId) {
-      carregarDados();
-    }
-  }, [open, planoId]);
+  const excluirPlano = async () => {
+    if (!plano) return;
 
-  const handleAddItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      if (!novoItem.alimento_id) {
-        toast({
-          title: "Campo obrigatório",
-          description: "Selecione um alimento.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log('Adicionando item:', novoItem);
-
-      const { error } = await supabase
-        .from('itens_plano_alimentar')
-        .insert({
-          plano_id: planoId,
-          dia_semana: diaSelecionado,
-          refeicao: novoItem.refeicao,
-          alimento_id: novoItem.alimento_id,
-          quantidade: novoItem.quantidade,
-          unidade_medida: novoItem.unidade_medida,
-          horario_recomendado: novoItem.horario_recomendado || null,
-          observacoes: novoItem.observacoes || null,
-          ordem: 0
-        });
-
-      if (error) {
-        console.error('Erro ao adicionar item:', error);
-        throw error;
-      }
-
-      toast({
-        title: "Item adicionado",
-        description: "O alimento foi adicionado ao plano.",
-      });
-
-      setNovoItem({
-        refeicao: 'cafe_manha',
-        alimento_id: '',
-        quantidade: 100,
-        unidade_medida: 'g',
-        horario_recomendado: '',
-        observacoes: ''
-      });
-
-      setShowAddForm(false);
-      carregarDados();
-    } catch (error) {
-      console.error('Erro ao adicionar item:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao adicionar alimento ao plano.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const deletarItem = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('itens_plano_alimentar')
+        .from('planos_alimentares')
         .delete()
-        .eq('id', id);
+        .eq('id', plano.id)
+        .eq('nutricionista_id', user?.id);
 
       if (error) throw error;
 
       toast({
-        title: "Item removido",
-        description: "O alimento foi removido do plano.",
+        title: "Plano excluído",
+        description: "O plano alimentar foi excluído com sucesso.",
       });
 
-      carregarDados();
+      onClose();
     } catch (error) {
-      console.error('Erro ao deletar item:', error);
+      console.error('Erro ao excluir plano:', error);
       toast({
         title: "Erro",
-        description: "Erro ao remover item.",
+        description: "Erro ao excluir o plano alimentar.",
         variant: "destructive",
       });
     }
   };
 
-  const calcularNutrientes = (item: ItemPlano) => {
+  const abrirSubstituicao = (item: ItemPlano) => {
+    setAlimentoParaSubstituir(item.alimentos);
+    setItemParaSubstituir(item.id);
+    setShowSubstituicao(true);
+  };
+
+  const handleSubstituicao = async (novoAlimento: any) => {
+    if (!itemParaSubstituir) return;
+
+    try {
+      const { error } = await supabase
+        .from('itens_plano_alimentar')
+        .update({ alimento_id: novoAlimento.id })
+        .eq('id', itemParaSubstituir);
+
+      if (error) throw error;
+
+      // Recarregar o plano para mostrar a substituição
+      await carregarPlano();
+      setShowSubstituicao(false);
+      setAlimentoParaSubstituir(null);
+      setItemParaSubstituir(null);
+    } catch (error) {
+      console.error('Erro ao substituir alimento:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao substituir alimento.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      carregarPlano();
+    }
+  }, [open, planoId]);
+
+  const calcularNutrientesPorItem = (item: ItemPlano) => {
     const fator = item.quantidade / 100;
     return {
-      calorias: Math.round(item.alimentos.calorias_por_100g * fator),
-      proteinas: Math.round(item.alimentos.proteinas_por_100g * fator * 10) / 10,
-      carboidratos: Math.round(item.alimentos.carboidratos_por_100g * fator * 10) / 10,
-      gorduras: Math.round(item.alimentos.gorduras_por_100g * fator * 10) / 10
+      calorias: (item.alimentos.calorias_por_100g * fator).toFixed(1),
+      proteinas: (item.alimentos.proteinas_por_100g * fator).toFixed(1),
+      carboidratos: (item.alimentos.carboidratos_por_100g * fator).toFixed(1),
+      gorduras: (item.alimentos.gorduras_por_100g * fator).toFixed(1),
+      fibras: (item.alimentos.fibras_por_100g * fator).toFixed(1)
     };
   };
 
-  const calcularTotalDia = (dia: number) => {
-    const itensDia = itens.filter(item => item.dia_semana === dia);
+  const calcularTotalDiario = (dia: number) => {
+    const itensDia = plano?.itens_plano_alimentar.filter(item => item.dia_semana === dia) || [];
+    
     return itensDia.reduce((total, item) => {
-      const nutrientes = calcularNutrientes(item);
+      const fator = item.quantidade / 100;
       return {
-        calorias: total.calorias + nutrientes.calorias,
-        proteinas: Math.round((total.proteinas + nutrientes.proteinas) * 10) / 10,
-        carboidratos: Math.round((total.carboidratos + nutrientes.carboidratos) * 10) / 10,
-        gorduras: Math.round((total.gorduras + nutrientes.gorduras) * 10) / 10
+        calorias: total.calorias + (item.alimentos.calorias_por_100g * fator),
+        proteinas: total.proteinas + (item.alimentos.proteinas_por_100g * fator),
+        carboidratos: total.carboidratos + (item.alimentos.carboidratos_por_100g * fator),
+        gorduras: total.gorduras + (item.alimentos.gorduras_por_100g * fator),
+        fibras: total.fibras + (item.alimentos.fibras_por_100g * fator)
       };
-    }, { calorias: 0, proteinas: 0, carboidratos: 0, gorduras: 0 });
+    }, { calorias: 0, proteinas: 0, carboidratos: 0, gorduras: 0, fibras: 0 });
   };
 
-  const getNomeRefeicao = (valor: string) => {
-    return refeicoes.find(r => r.valor === valor)?.nome || valor;
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'ativo':
+        return <Badge className="bg-green-100 text-green-800">Ativo</Badge>;
+      case 'pausado':
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Pausado</Badge>;
+      case 'finalizado':
+        return <Badge variant="secondary">Finalizado</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
   };
-
-  const itensDiaSelecionado = itens.filter(item => item.dia_semana === diaSelecionado);
-  const totalDia = calcularTotalDia(diaSelecionado);
 
   if (loading) {
     return (
@@ -326,7 +246,7 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
           <div className="flex items-center justify-center p-8">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Carregando plano...</p>
+              <p className="mt-2 text-gray-600">Carregando plano alimentar...</p>
             </div>
           </div>
         </DialogContent>
@@ -337,12 +257,9 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
   if (!plano) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-center p-8">
-            <div className="text-center">
-              <p className="text-gray-600">Plano não encontrado.</p>
-              <Button onClick={onClose} className="mt-4">Fechar</Button>
-            </div>
+        <DialogContent className="max-w-6xl">
+          <div className="text-center py-8">
+            <p className="text-gray-500">Plano alimentar não encontrado.</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -350,258 +267,182 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
   }
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <ChefHat className="w-5 h-5 mr-2" />
-            {plano.titulo}
-          </DialogTitle>
-          <div className="text-sm text-gray-600">
-            Paciente: {plano.pacientes.nome} • Status: {plano.status}
-          </div>
-        </DialogHeader>
-
-        <Tabs value={diaSelecionado.toString()} onValueChange={(value) => setDiaSelecionado(Number(value))}>
-          <TabsList className="grid w-full grid-cols-7">
-            {diasSemana.map((dia) => (
-              <TabsTrigger key={dia.valor} value={dia.valor.toString()}>
-                {dia.nome.substring(0, 3)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {diasSemana.map((dia) => (
-            <TabsContent key={dia.valor} value={dia.valor.toString()} className="space-y-4">
-              {/* Resumo nutricional do dia */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Calculator className="w-5 h-5 mr-2" />
-                    Resumo Nutricional - {dia.nome}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-600">{totalDia.calorias}</p>
-                      <p className="text-sm text-gray-600">Calorias</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-green-600">{totalDia.proteinas}g</p>
-                      <p className="text-sm text-gray-600">Proteínas</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-yellow-600">{totalDia.carboidratos}g</p>
-                      <p className="text-sm text-gray-600">Carboidratos</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-red-600">{totalDia.gorduras}g</p>
-                      <p className="text-sm text-gray-600">Gorduras</p>
-                    </div>
+    <>
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex justify-between items-start">
+              <div>
+                <DialogTitle className="flex items-center text-xl">
+                  <Calculator className="w-6 h-6 mr-2" />
+                  {plano.titulo}
+                </DialogTitle>
+                <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                  <div className="flex items-center">
+                    <User className="w-4 h-4 mr-1" />
+                    {plano.pacientes.nome}
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Botão para adicionar alimento */}
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Refeições - {dia.nome}</h3>
-                <Button
-                  onClick={() => setShowAddForm(!showAddForm)}
-                  className="bg-emerald-600 hover:bg-emerald-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Alimento
-                </Button>
+                  <div>{getStatusBadge(plano.status)}</div>
+                  {plano.data_inicio && (
+                    <div>
+                      Início: {new Date(plano.data_inicio).toLocaleDateString('pt-BR')}
+                    </div>
+                  )}
+                  {plano.data_fim && (
+                    <div>
+                      Fim: {new Date(plano.data_fim).toLocaleDateString('pt-BR')}
+                    </div>
+                  )}
+                </div>
               </div>
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Excluir Plano
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir Plano Alimentar</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja excluir o plano "{plano.titulo}"? 
+                      Esta ação não pode ser desfeita e todos os itens do plano serão removidos.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={excluirPlano} className="bg-red-600 hover:bg-red-700">
+                      Sim, excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </DialogHeader>
 
-              {/* Formulário para adicionar alimento */}
-              {showAddForm && (
-                <Card>
+          {plano.descricao && (
+            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-700">{plano.descricao}</p>
+            </div>
+          )}
+
+          <div className="space-y-6">
+            {diasSemana.map((dia, diaIndex) => {
+              const itensDia = plano.itens_plano_alimentar
+                .filter(item => item.dia_semana === diaIndex)
+                .sort((a, b) => {
+                  const refeicaoOrder = refeicoes.indexOf(a.refeicao) - refeicoes.indexOf(b.refeicao);
+                  return refeicaoOrder !== 0 ? refeicaoOrder : a.ordem - b.ordem;
+                });
+
+              const totalDiario = calcularTotalDiario(diaIndex);
+
+              return (
+                <Card key={diaIndex}>
                   <CardHeader>
-                    <CardTitle>Adicionar Alimento</CardTitle>
+                    <CardTitle className="text-lg">
+                      {dia}
+                      <span className="ml-4 text-sm font-normal text-gray-600">
+                        Total: {totalDiario.calorias.toFixed(0)} kcal | 
+                        {totalDiario.proteinas.toFixed(1)}g prot | 
+                        {totalDiario.carboidratos.toFixed(1)}g carb | 
+                        {totalDiario.gorduras.toFixed(1)}g gord
+                      </span>
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <form onSubmit={handleAddItem} className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="refeicao">Refeição</Label>
-                          <Select 
-                            value={novoItem.refeicao} 
-                            onValueChange={(value) => setNovoItem({...novoItem, refeicao: value})}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {refeicoes.map((refeicao) => (
-                                <SelectItem key={refeicao.valor} value={refeicao.valor}>
-                                  {refeicao.nome}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="alimento">Alimento</Label>
-                          <Select 
-                            value={novoItem.alimento_id} 
-                            onValueChange={(value) => setNovoItem({...novoItem, alimento_id: value})}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um alimento" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {alimentos.map((alimento) => (
-                                <SelectItem key={alimento.id} value={alimento.id}>
-                                  {alimento.nome}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+                    {itensDia.length === 0 ? (
+                      <p className="text-gray-500 text-center py-4">Nenhum alimento planejado para este dia.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {refeicoes.map((refeicao) => {
+                          const itensRefeicao = itensDia.filter(item => item.refeicao === refeicao);
+                          
+                          if (itensRefeicao.length === 0) return null;
 
-                      <div className="grid grid-cols-4 gap-4">
-                        <div>
-                          <Label htmlFor="quantidade">Quantidade</Label>
-                          <Input
-                            id="quantidade"
-                            type="number"
-                            value={novoItem.quantidade}
-                            onChange={(e) => setNovoItem({...novoItem, quantidade: Number(e.target.value)})}
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="unidade">Unidade</Label>
-                          <Select 
-                            value={novoItem.unidade_medida} 
-                            onValueChange={(value) => setNovoItem({...novoItem, unidade_medida: value})}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="g">g</SelectItem>
-                              <SelectItem value="ml">ml</SelectItem>
-                              <SelectItem value="unidade">unidade</SelectItem>
-                              <SelectItem value="colher">colher</SelectItem>
-                              <SelectItem value="xícara">xícara</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="horario">Horário</Label>
-                          <Input
-                            id="horario"
-                            type="time"
-                            value={novoItem.horario_recomendado}
-                            onChange={(e) => setNovoItem({...novoItem, horario_recomendado: e.target.value})}
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="observacoes">Observações</Label>
-                          <Input
-                            id="observacoes"
-                            placeholder="Opcional"
-                            value={novoItem.observacoes}
-                            onChange={(e) => setNovoItem({...novoItem, observacoes: e.target.value})}
-                          />
-                        </div>
+                          return (
+                            <div key={refeicao}>
+                              <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                                <Clock className="w-4 h-4 mr-1" />
+                                {refeicao}
+                              </h4>
+                              
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Alimento</TableHead>
+                                    <TableHead>Quantidade</TableHead>
+                                    <TableHead>Calorias</TableHead>
+                                    <TableHead>Proteínas</TableHead>
+                                    <TableHead>Carboidratos</TableHead>
+                                    <TableHead>Gorduras</TableHead>
+                                    <TableHead>Observações</TableHead>
+                                    <TableHead>Ações</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {itensRefeicao.map((item) => {
+                                    const nutrientes = calcularNutrientesPorItem(item);
+                                    
+                                    return (
+                                      <TableRow key={item.id}>
+                                        <TableCell className="font-medium">
+                                          {item.alimentos.nome}
+                                          <Badge variant="outline" className="ml-2 text-xs">
+                                            {item.alimentos.categoria}
+                                          </Badge>
+                                        </TableCell>
+                                        <TableCell>{item.quantidade} {item.unidade_medida}</TableCell>
+                                        <TableCell>{nutrientes.calorias} kcal</TableCell>
+                                        <TableCell>{nutrientes.proteinas}g</TableCell>
+                                        <TableCell>{nutrientes.carboidratos}g</TableCell>
+                                        <TableCell>{nutrientes.gorduras}g</TableCell>
+                                        <TableCell className="text-sm text-gray-600">
+                                          {item.observacoes || '-'}
+                                        </TableCell>
+                                        <TableCell>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => abrirSubstituicao(item)}
+                                            className="text-blue-600 hover:text-blue-700"
+                                          >
+                                            <ArrowRightLeft className="w-3 h-3 mr-1" />
+                                            Substituir
+                                          </Button>
+                                        </TableCell>
+                                      </TableRow>
+                                    );
+                                  })}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          );
+                        })}
                       </div>
-
-                      <div className="flex gap-2">
-                        <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700">
-                          Adicionar
-                        </Button>
-                        <Button type="button" variant="outline" onClick={() => setShowAddForm(false)}>
-                          Cancelar
-                        </Button>
-                      </div>
-                    </form>
+                    )}
                   </CardContent>
                 </Card>
-              )}
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
 
-              {/* Lista de refeições */}
-              <div className="space-y-4">
-                {refeicoes.map((refeicao) => {
-                  const itensRefeicao = itensDiaSelecionado.filter(item => item.refeicao === refeicao.valor);
-                  
-                  if (itensRefeicao.length === 0) return null;
-
-                  return (
-                    <Card key={refeicao.valor}>
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Clock className="w-4 h-4 mr-2" />
-                          {refeicao.nome}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Alimento</TableHead>
-                              <TableHead>Quantidade</TableHead>
-                              <TableHead>Horário</TableHead>
-                              <TableHead>Calorias</TableHead>
-                              <TableHead>Proteínas</TableHead>
-                              <TableHead>Carboidratos</TableHead>
-                              <TableHead>Gorduras</TableHead>
-                              <TableHead>Observações</TableHead>
-                              <TableHead>Ações</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {itensRefeicao.map((item) => {
-                              const nutrientes = calcularNutrientes(item);
-                              return (
-                                <TableRow key={item.id}>
-                                  <TableCell className="font-medium">{item.alimentos.nome}</TableCell>
-                                  <TableCell>{item.quantidade} {item.unidade_medida}</TableCell>
-                                  <TableCell>{item.horario_recomendado || '-'}</TableCell>
-                                  <TableCell>{nutrientes.calorias} kcal</TableCell>
-                                  <TableCell>{nutrientes.proteinas}g</TableCell>
-                                  <TableCell>{nutrientes.carboidratos}g</TableCell>
-                                  <TableCell>{nutrientes.gorduras}g</TableCell>
-                                  <TableCell>{item.observacoes || '-'}</TableCell>
-                                  <TableCell>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => deletarItem(item.id)}
-                                      className="text-red-600 hover:text-red-700"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                  </TableCell>
-                                </TableRow>
-                              );
-                            })}
-                          </TableBody>
-                        </Table>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              {itensDiaSelecionado.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  Nenhum alimento adicionado para {dia.nome} ainda.
-                  <br />
-                  Clique em "Adicionar Alimento" para começar a montar o plano.
-                </div>
-              )}
-            </TabsContent>
-          ))}
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+      {alimentoParaSubstituir && (
+        <SubstituicaoAlimentoDialog
+          open={showSubstituicao}
+          onClose={() => {
+            setShowSubstituicao(false);
+            setAlimentoParaSubstituir(null);
+            setItemParaSubstituir(null);
+          }}
+          alimentoOriginal={alimentoParaSubstituir}
+          onSubstituir={handleSubstituicao}
+        />
+      )}
+    </>
   );
 };
