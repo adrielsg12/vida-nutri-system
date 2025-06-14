@@ -9,18 +9,59 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Filter, ChefHat } from 'lucide-react';
+import { Search, Filter, ChefHat, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface Alimento {
   id: string;
   nome: string;
   categoria: string;
-  calorias_por_100g: number;
-  proteinas_por_100g: number;
-  carboidratos_por_100g: number;
-  gorduras_por_100g: number;
-  fibras_por_100g: number;
+  unidade_medida?: string | null;
+  // Campos principais TACO
+  umidade?: number | null;
+  energia_kcal?: number | null;
+  energia_kj?: number | null;
+  proteina?: number | null;
+  lipideos?: number | null;
+  colesterol?: number | null;
+  carboidrato?: number | null;
+  fibra_alimentar?: number | null;
+  cinzas?: number | null;
+  calcio?: number | null;
+  magnesio?: number | null;
+  manganes?: number | null;
+  fosforo?: number | null;
+  ferro?: number | null;
+  sodio?: number | null;
+  potassio?: number | null;
+  cobre?: number | null;
+  zinco?: number | null;
+  retinol?: number | null;
+  re?: number | null;
+  rae?: number | null;
+  tiamina?: number | null;
+  riboflavina?: number | null;
+  piridoxina?: number | null;
+  niacina?: number | null;
+  vitamina_c?: number | null;
+  categoria_taco?: string | null;
+  codigo_taco?: string | null;
+
+  calorias_por_100g?: number | null;
+  proteinas_por_100g?: number | null;
+  carboidratos_por_100g?: number | null;
+  gorduras_por_100g?: number | null;
+  fibras_por_100g?: number | null;
 }
+
+type OrderableField =
+  | 'nome'
+  | 'proteina'
+  | 'lipideos'
+  | 'carboidrato'
+  | 'energia_kcal'
+  | 'fibras_por_100g'
+  | 'calorias_por_100g'
+  | 'colesterol';
 
 export const PesquisaAlimentos = () => {
   const [alimentos, setAlimentos] = useState<Alimento[]>([]);
@@ -29,29 +70,30 @@ export const PesquisaAlimentos = () => {
   const [filtros, setFiltros] = useState({
     nome: '',
     categoria: '',
-    caloriasMin: '',
-    caloriasMax: '',
-    proteinasMin: '',
-    proteinasMax: '',
-    carboidratosMin: '',
-    carboidratosMax: '',
-    gordurasMin: '',
-    gordurasMax: '',
-    fibrasMin: '',
-    fibrasMax: ''
+    proteinaMin: '',
+    proteinaMax: '',
+    lipideosMin: '',
+    lipideosMax: '',
+    carboidratoMin: '',
+    carboidratoMax: '',
+    energiaKcalMin: '',
+    energiaKcalMax: '',
   });
+  const [ordenarPor, setOrdenarPor] = useState<OrderableField>('nome');
+  const [ordemAsc, setOrdemAsc] = useState(true);
 
   const { toast } = useToast();
 
   const carregarAlimentos = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('alimentos')
-        .select('*')
-        .order('nome');
+        .select(`
+          *
+        `).order('nome');
 
       if (error) throw error;
-
       setAlimentos(data || []);
       setAlimentosFiltrados(data || []);
     } catch (error) {
@@ -70,139 +112,123 @@ export const PesquisaAlimentos = () => {
     carregarAlimentos();
   }, []);
 
+  useEffect(() => {
+    aplicarFiltros();
+    // eslint-disable-next-line
+  }, [alimentos, filtros, ordenarPor, ordemAsc]);
+
   const aplicarFiltros = () => {
-    let alimentosFiltrados = alimentos;
+    let filtrados = alimentos;
 
-    // Filtro por nome
+    // Busca por nome
     if (filtros.nome) {
-      alimentosFiltrados = alimentosFiltrados.filter(alimento =>
-        alimento.nome.toLowerCase().includes(filtros.nome.toLowerCase())
+      filtrados = filtrados.filter(a =>
+        a.nome.toLowerCase().includes(filtros.nome.toLowerCase())
       );
     }
-
-    // Filtro por categoria
+    // Categoria
     if (filtros.categoria) {
-      alimentosFiltrados = alimentosFiltrados.filter(alimento =>
-        alimento.categoria === filtros.categoria
+      filtrados = filtrados.filter(a =>
+        a.categoria === filtros.categoria
+      );
+    }
+    // Proteína
+    if (filtros.proteinaMin) {
+      filtrados = filtrados.filter(a =>
+        (a.proteina ?? 0) >= Number(filtros.proteinaMin)
+      );
+    }
+    if (filtros.proteinaMax) {
+      filtrados = filtrados.filter(a =>
+        (a.proteina ?? 0) <= Number(filtros.proteinaMax)
+      );
+    }
+    // Lipídeos
+    if (filtros.lipideosMin) {
+      filtrados = filtrados.filter(a =>
+        (a.lipideos ?? 0) >= Number(filtros.lipideosMin)
+      );
+    }
+    if (filtros.lipideosMax) {
+      filtrados = filtrados.filter(a =>
+        (a.lipideos ?? 0) <= Number(filtros.lipideosMax)
+      );
+    }
+    // Carboidrato
+    if (filtros.carboidratoMin) {
+      filtrados = filtrados.filter(a =>
+        (a.carboidrato ?? 0) >= Number(filtros.carboidratoMin)
+      );
+    }
+    if (filtros.carboidratoMax) {
+      filtrados = filtrados.filter(a =>
+        (a.carboidrato ?? 0) <= Number(filtros.carboidratoMax)
+      );
+    }
+    // Energia kcal
+    if (filtros.energiaKcalMin) {
+      filtrados = filtrados.filter(a =>
+        (a.energia_kcal ?? 0) >= Number(filtros.energiaKcalMin)
+      );
+    }
+    if (filtros.energiaKcalMax) {
+      filtrados = filtrados.filter(a =>
+        (a.energia_kcal ?? 0) <= Number(filtros.energiaKcalMax)
       );
     }
 
-    // Filtros por nutrientes
-    if (filtros.caloriasMin) {
-      alimentosFiltrados = alimentosFiltrados.filter(alimento =>
-        alimento.calorias_por_100g >= Number(filtros.caloriasMin)
-      );
-    }
-    if (filtros.caloriasMax) {
-      alimentosFiltrados = alimentosFiltrados.filter(alimento =>
-        alimento.calorias_por_100g <= Number(filtros.caloriasMax)
-      );
-    }
+    // Ordenação
+    filtrados = [...filtrados].sort((a, b) => {
+      const fieldA = (a[ordenarPor] ?? 0) as number;
+      const fieldB = (b[ordenarPor] ?? 0) as number;
+      return ordemAsc ? fieldA - fieldB : fieldB - fieldA;
+    });
 
-    if (filtros.proteinasMin) {
-      alimentosFiltrados = alimentosFiltrados.filter(alimento =>
-        alimento.proteinas_por_100g >= Number(filtros.proteinasMin)
-      );
-    }
-    if (filtros.proteinasMax) {
-      alimentosFiltrados = alimentosFiltrados.filter(alimento =>
-        alimento.proteinas_por_100g <= Number(filtros.proteinasMax)
-      );
-    }
-
-    if (filtros.carboidratosMin) {
-      alimentosFiltrados = alimentosFiltrados.filter(alimento =>
-        alimento.carboidratos_por_100g >= Number(filtros.carboidratosMin)
-      );
-    }
-    if (filtros.carboidratosMax) {
-      alimentosFiltrados = alimentosFiltrados.filter(alimento =>
-        alimento.carboidratos_por_100g <= Number(filtros.carboidratosMax)
-      );
-    }
-
-    if (filtros.gordurasMin) {
-      alimentosFiltrados = alimentosFiltrados.filter(alimento =>
-        alimento.gorduras_por_100g >= Number(filtros.gordurasMin)
-      );
-    }
-    if (filtros.gordurasMax) {
-      alimentosFiltrados = alimentosFiltrados.filter(alimento =>
-        alimento.gorduras_por_100g <= Number(filtros.gordurasMax)
-      );
-    }
-
-    if (filtros.fibrasMin) {
-      alimentosFiltrados = alimentosFiltrados.filter(alimento =>
-        alimento.fibras_por_100g >= Number(filtros.fibrasMin)
-      );
-    }
-    if (filtros.fibrasMax) {
-      alimentosFiltrados = alimentosFiltrados.filter(alimento =>
-        alimento.fibras_por_100g <= Number(filtros.fibrasMax)
-      );
-    }
-
-    setAlimentosFiltrados(alimentosFiltrados);
+    setAlimentosFiltrados(filtrados);
   };
 
   const limparFiltros = () => {
     setFiltros({
       nome: '',
       categoria: '',
-      caloriasMin: '',
-      caloriasMax: '',
-      proteinasMin: '',
-      proteinasMax: '',
-      carboidratosMin: '',
-      carboidratosMax: '',
-      gordurasMin: '',
-      gordurasMax: '',
-      fibrasMin: '',
-      fibrasMax: ''
+      proteinaMin: '',
+      proteinaMax: '',
+      lipideosMin: '',
+      lipideosMax: '',
+      carboidratoMin: '',
+      carboidratoMax: '',
+      energiaKcalMin: '',
+      energiaKcalMax: '',
     });
-    setAlimentosFiltrados(alimentos);
   };
 
-  const categorias = [...new Set(alimentos.map(a => a.categoria))].sort();
+  const categorias = [...new Set(alimentos.map(a => a.categoria).filter(Boolean))].sort();
 
   const handleFiltroChange = (field: string, value: string) => {
     setFiltros(prev => ({ ...prev, [field]: value }));
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Carregando alimentos...</p>
-        </div>
-      </div>
-    );
-  }
+  // Render
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 flex items-center">
           <ChefHat className="w-8 h-8 mr-3" />
-          Pesquisa de Alimentos
+          Pesquisa de Alimentos (Base TACO Completa)
         </h1>
-        <p className="text-gray-600">Pesquise alimentos por nutrientes e categoria</p>
+        <p className="text-gray-600">Pesquise alimentos, filtre e organize pela informação nutricional da tabela TACO.</p>
       </div>
 
-      {/* Filtros */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <Filter className="w-5 h-5 mr-2" />
-            Filtros de Pesquisa
+            Filtros e Ordenação
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            {/* Nome */}
             <div>
               <Label htmlFor="nome">Nome do Alimento</Label>
               <div className="relative">
@@ -216,120 +242,116 @@ export const PesquisaAlimentos = () => {
                 />
               </div>
             </div>
-
-            {/* Categoria */}
             <div>
               <Label htmlFor="categoria">Categoria</Label>
-              <Select value={filtros.categoria} onValueChange={(value) => handleFiltroChange('categoria', value)}>
+              <Select value={filtros.categoria} onValueChange={(v) => handleFiltroChange('categoria', v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todas as categorias" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Todas as categorias</SelectItem>
-                  {categorias.map((categoria) => (
-                    <SelectItem key={categoria} value={categoria}>
-                      {categoria}
-                    </SelectItem>
+                  {categorias.map(c => (
+                    <SelectItem value={c} key={c}>{c}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label htmlFor="proteinaMin">Proteína (g) Mín</Label>
+              <Input
+                id="proteinaMin"
+                type="number"
+                value={filtros.proteinaMin}
+                onChange={(e) => handleFiltroChange('proteinaMin', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="proteinaMax">Proteína (g) Máx</Label>
+              <Input
+                id="proteinaMax"
+                type="number"
+                value={filtros.proteinaMax}
+                onChange={(e) => handleFiltroChange('proteinaMax', e.target.value)}
+              />
+            </div>
           </div>
 
-          {/* Filtros por nutrientes */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
-            {/* Calorias */}
-            <div className="space-y-2">
-              <Label>Calorias (kcal/100g)</Label>
-              <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div>
+              <Label>Lipídeos (g)</Label>
+              <div className="flex gap-2">
                 <Input
                   type="number"
                   placeholder="Mín"
-                  value={filtros.caloriasMin}
-                  onChange={(e) => handleFiltroChange('caloriasMin', e.target.value)}
+                  value={filtros.lipideosMin}
+                  onChange={(e) => handleFiltroChange('lipideosMin', e.target.value)}
                 />
                 <Input
                   type="number"
                   placeholder="Máx"
-                  value={filtros.caloriasMax}
-                  onChange={(e) => handleFiltroChange('caloriasMax', e.target.value)}
+                  value={filtros.lipideosMax}
+                  onChange={(e) => handleFiltroChange('lipideosMax', e.target.value)}
                 />
               </div>
             </div>
-
-            {/* Proteínas */}
-            <div className="space-y-2">
-              <Label>Proteínas (g/100g)</Label>
-              <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label>Carboidrato (g)</Label>
+              <div className="flex gap-2">
                 <Input
                   type="number"
                   placeholder="Mín"
-                  value={filtros.proteinasMin}
-                  onChange={(e) => handleFiltroChange('proteinasMin', e.target.value)}
+                  value={filtros.carboidratoMin}
+                  onChange={(e) => handleFiltroChange('carboidratoMin', e.target.value)}
                 />
                 <Input
                   type="number"
                   placeholder="Máx"
-                  value={filtros.proteinasMax}
-                  onChange={(e) => handleFiltroChange('proteinasMax', e.target.value)}
+                  value={filtros.carboidratoMax}
+                  onChange={(e) => handleFiltroChange('carboidratoMax', e.target.value)}
                 />
               </div>
             </div>
-
-            {/* Carboidratos */}
-            <div className="space-y-2">
-              <Label>Carboidratos (g/100g)</Label>
-              <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label>Energia (kcal)</Label>
+              <div className="flex gap-2">
                 <Input
                   type="number"
                   placeholder="Mín"
-                  value={filtros.carboidratosMin}
-                  onChange={(e) => handleFiltroChange('carboidratosMin', e.target.value)}
+                  value={filtros.energiaKcalMin}
+                  onChange={(e) => handleFiltroChange('energiaKcalMin', e.target.value)}
                 />
                 <Input
                   type="number"
                   placeholder="Máx"
-                  value={filtros.carboidratosMax}
-                  onChange={(e) => handleFiltroChange('carboidratosMax', e.target.value)}
+                  value={filtros.energiaKcalMax}
+                  onChange={(e) => handleFiltroChange('energiaKcalMax', e.target.value)}
                 />
               </div>
             </div>
-
-            {/* Gorduras */}
-            <div className="space-y-2">
-              <Label>Gorduras (g/100g)</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  type="number"
-                  placeholder="Mín"
-                  value={filtros.gordurasMin}
-                  onChange={(e) => handleFiltroChange('gordurasMin', e.target.value)}
-                />
-                <Input
-                  type="number"
-                  placeholder="Máx"
-                  value={filtros.gordurasMax}
-                  onChange={(e) => handleFiltroChange('gordurasMax', e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Fibras */}
-            <div className="space-y-2">
-              <Label>Fibras (g/100g)</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  type="number"
-                  placeholder="Mín"
-                  value={filtros.fibrasMin}
-                  onChange={(e) => handleFiltroChange('fibrasMin', e.target.value)}
-                />
-                <Input
-                  type="number"
-                  placeholder="Máx"
-                  value={filtros.fibrasMax}
-                  onChange={(e) => handleFiltroChange('fibrasMax', e.target.value)}
-                />
+            <div>
+              <Label>Ordenar por</Label>
+              <div className="flex gap-2 items-center">
+                <Select value={ordenarPor} onValueChange={(v: OrderableField) => setOrdenarPor(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="nome">Nome</SelectItem>
+                    <SelectItem value="proteina">Mais Proteína</SelectItem>
+                    <SelectItem value="lipideos">Mais Gordura</SelectItem>
+                    <SelectItem value="carboidrato">Mais Carboidrato</SelectItem>
+                    <SelectItem value="energia_kcal">Mais Calorias</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setOrdemAsc(!ordemAsc)}
+                  className="ml-2"
+                  title="Alternar ordem"
+                >
+                  {ordemAsc ? <ArrowDown className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />}
+                </Button>
               </div>
             </div>
           </div>
@@ -345,45 +367,60 @@ export const PesquisaAlimentos = () => {
         </CardContent>
       </Card>
 
-      {/* Resultados */}
       <Card>
         <CardHeader>
-          <CardTitle>Resultados ({alimentosFiltrados.length} alimentos)</CardTitle>
+          <CardTitle>
+            Resultados ({alimentosFiltrados.length} alimentos)
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {alimentosFiltrados.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                <p className="mt-2 text-gray-600">Carregando alimentos...</p>
+              </div>
+            </div>
+          ) : alimentosFiltrados.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               Nenhum alimento encontrado com os filtros aplicados.
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Calorias/100g</TableHead>
-                  <TableHead>Proteínas/100g</TableHead>
-                  <TableHead>Carboidratos/100g</TableHead>
-                  <TableHead>Gorduras/100g</TableHead>
-                  <TableHead>Fibras/100g</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {alimentosFiltrados.map((alimento) => (
-                  <TableRow key={alimento.id}>
-                    <TableCell className="font-medium">{alimento.nome}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{alimento.categoria}</Badge>
-                    </TableCell>
-                    <TableCell>{alimento.calorias_por_100g}</TableCell>
-                    <TableCell>{alimento.proteinas_por_100g}g</TableCell>
-                    <TableCell>{alimento.carboidratos_por_100g}g</TableCell>
-                    <TableCell>{alimento.gorduras_por_100g}g</TableCell>
-                    <TableCell>{alimento.fibras_por_100g}g</TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Unidade</TableHead>
+                    <TableHead>Proteína</TableHead>
+                    <TableHead>Lipídeos</TableHead>
+                    <TableHead>Carboidrato</TableHead>
+                    <TableHead>Energia (kcal)</TableHead>
+                    <TableHead>Fibra</TableHead>
+                    <TableHead>Colesterol</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {alimentosFiltrados.map(alimento => (
+                    <TableRow key={alimento.id}>
+                      <TableCell className="font-medium">{alimento.nome}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{alimento.categoria}</Badge>
+                      </TableCell>
+                      <TableCell>{alimento.unidade_medida || 'g'}</TableCell>
+                      <TableCell>{alimento.proteina ?? alimento.proteinas_por_100g ?? '-'}</TableCell>
+                      <TableCell>{alimento.lipideos ?? alimento.gorduras_por_100g ?? '-'}</TableCell>
+                      <TableCell>{alimento.carboidrato ?? alimento.carboidratos_por_100g ?? '-'}</TableCell>
+                      <TableCell>{alimento.energia_kcal ?? alimento.calorias_por_100g ?? '-'}</TableCell>
+                      <TableCell>{alimento.fibra_alimentar ?? alimento.fibras_por_100g ?? '-'}</TableCell>
+                      <TableCell>{alimento.colesterol ?? '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <div className="text-xs text-gray-400 mt-1">* Mostrando os principais campos nutricionais. Use a busca para localizar alimentos TACO completos.</div>
+            </div>
           )}
         </CardContent>
       </Card>

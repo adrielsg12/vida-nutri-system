@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
@@ -11,7 +10,8 @@ import {
   LogOut,
   Bell,
   User,
-  Heart
+  Heart,
+  ChefHat
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -63,6 +63,11 @@ const menuItems = [
     title: 'Configurações',
     icon: Settings,
     href: '/configuracoes',
+  },
+  {
+    title: 'Pesquisa de Alimentos',
+    icon: ChefHat,
+    href: '/pesquisa-alimentos',
   },
 ];
 
