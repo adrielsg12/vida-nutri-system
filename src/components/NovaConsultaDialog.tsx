@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 interface Patient {
   id: string;
   nome: string;
+  email?: string; // Added email
 }
 
 interface NovaConsultaDialogProps {
@@ -53,7 +54,7 @@ export const NovaConsultaDialog = ({ open, onClose, onSuccess }: NovaConsultaDia
 
       const { data, error } = await supabase
         .from('pacientes')
-        .select('id, nome')
+        .select('id, nome, email') // Now fetch email too
         .eq('nutricionista_id', user.id)
         .eq('status', 'ativo')
         .order('nome');
@@ -161,6 +162,10 @@ export const NovaConsultaDialog = ({ open, onClose, onSuccess }: NovaConsultaDia
     }
     if (!formData.data || !formData.hora) {
       toast({ title: "Erro", description: "Informe data e horário.", variant: "destructive" });
+      return;
+    }
+    if (!selectedPatient.email) {
+      toast({ title: "Erro", description: "Paciente não possui e-mail cadastrado.", variant: "destructive" });
       return;
     }
 
