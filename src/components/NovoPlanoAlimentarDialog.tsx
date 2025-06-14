@@ -85,7 +85,9 @@ export const NovoPlanoAlimentarDialog = ({
     try {
       setLoading(true);
       
-      const { error } = await supabase
+      console.log('Criando plano com dados:', formData);
+      
+      const { data, error } = await supabase
         .from('planos_alimentares')
         .insert({
           titulo: formData.titulo,
@@ -95,9 +97,16 @@ export const NovoPlanoAlimentarDialog = ({
           data_inicio: formData.data_inicio || null,
           data_fim: formData.data_fim || null,
           status: formData.status
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao criar plano:', error);
+        throw error;
+      }
+
+      console.log('Plano criado com sucesso:', data);
 
       toast({
         title: "Sucesso",
@@ -115,11 +124,12 @@ export const NovoPlanoAlimentarDialog = ({
       });
 
       onSuccess();
+      onClose();
     } catch (error) {
       console.error('Erro ao criar plano:', error);
       toast({
         title: "Erro",
-        description: "Erro ao criar plano alimentar.",
+        description: "Erro ao criar plano alimentar. Tente novamente.",
         variant: "destructive",
       });
     } finally {
