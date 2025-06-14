@@ -108,8 +108,12 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
   const { toast } = useToast();
 
   const carregarDados = async () => {
+    if (!planoId) return;
+    
     setLoading(true);
     try {
+      console.log('Carregando dados do plano:', planoId);
+
       // Carregar dados do plano
       const { data: planoData, error: planoError } = await supabase
         .from('planos_alimentares')
@@ -125,7 +129,12 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
         .eq('id', planoId)
         .single();
 
-      if (planoError) throw planoError;
+      if (planoError) {
+        console.error('Erro ao carregar plano:', planoError);
+        throw planoError;
+      }
+
+      console.log('Plano carregado:', planoData);
 
       // Carregar itens do plano
       const { data: itensData, error: itensError } = await supabase
@@ -153,15 +162,26 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
         .order('refeicao')
         .order('ordem');
 
-      if (itensError) throw itensError;
+      if (itensError) {
+        console.error('Erro ao carregar itens:', itensError);
+        throw itensError;
+      }
+
+      console.log('Itens carregados:', itensData);
 
       // Carregar biblioteca de alimentos
       const { data: alimentosData, error: alimentosError } = await supabase
         .from('alimentos')
         .select('id, nome, calorias_por_100g, proteinas_por_100g, carboidratos_por_100g, gorduras_por_100g')
+        .or('is_publico.eq.true,nutricionista_id.eq.' + (await supabase.auth.getUser()).data.user?.id)
         .order('nome');
 
-      if (alimentosError) throw alimentosError;
+      if (alimentosError) {
+        console.error('Erro ao carregar alimentos:', alimentosError);
+        throw alimentosError;
+      }
+
+      console.log('Alimentos carregados:', alimentosData);
 
       setPlano(planoData);
       setItens(itensData || []);
@@ -197,6 +217,8 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
         return;
       }
 
+      console.log('Adicionando item:', novoItem);
+
       const { error } = await supabase
         .from('itens_plano_alimentar')
         .insert({
@@ -211,7 +233,10 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
           ordem: 0
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao adicionar item:', error);
+        throw error;
+      }
 
       toast({
         title: "Item adicionado",
@@ -280,9 +305,9 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
       const nutrientes = calcularNutrientes(item);
       return {
         calorias: total.calorias + nutrientes.calorias,
-        proteinas: total.proteinas + nutrientes.proteinas,
-        carboidratos: total.carboidratos + nutrientes.carboidratos,
-        gorduras: total.gorduras + nutrientes.gorduras
+        proteinas: Math.round((total.proteinas + nutrientes.proteinas) * 10) / 10,
+        carboidratos: Math.round((total.carboidratos + nutrientes.carboidratos) * 10) / 10,
+        gorduras: Math.round((total.gorduras + nutrientes.gorduras) * 10) / 10
       };
     }, { calorias: 0, proteinas: 0, carboidratos: 0, gorduras: 0 });
   };
@@ -309,19 +334,32 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
     );
   }
 
+  if (!plano) {
+    return (
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <p className="text-gray-600">Plano não encontrado.</p>
+              <Button onClick={onClose} className="mt-4">Fechar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <ChefHat className="w-5 h-5 mr-2" />
-            {plano?.titulo}
+            {plano.titulo}
           </DialogTitle>
-          {plano && (
-            <div className="text-sm text-gray-600">
-              Paciente: {plano.pacientes.nome} • Status: {plano.status}
-            </div>
-          )}
+          <div className="text-sm text-gray-600">
+            Paciente: {plano.pacientes.nome} • Status: {plano.status}
+          </div>
         </DialogHeader>
 
         <Tabs value={diaSelecionado.toString()} onValueChange={(value) => setDiaSelecionado(Number(value))}>
@@ -379,107 +417,114 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
 
               {/* Formulário para adicionar alimento */}
               {showAddForm && (
-                <form onSubmit={handleAddItem} className="p-4 border rounded-lg space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="refeicao">Refeição</Label>
-                      <Select 
-                        value={novoItem.refeicao} 
-                        onValueChange={(value) => setNovoItem({...novoItem, refeicao: value})}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {refeicoes.map((refeicao) => (
-                            <SelectItem key={refeicao.valor} value={refeicao.valor}>
-                              {refeicao.nome}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="alimento">Alimento</Label>
-                      <Select 
-                        value={novoItem.alimento_id} 
-                        onValueChange={(value) => setNovoItem({...novoItem, alimento_id: value})}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um alimento" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {alimentos.map((alimento) => (
-                            <SelectItem key={alimento.id} value={alimento.id}>
-                              {alimento.nome}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Adicionar Alimento</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleAddItem} className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="refeicao">Refeição</Label>
+                          <Select 
+                            value={novoItem.refeicao} 
+                            onValueChange={(value) => setNovoItem({...novoItem, refeicao: value})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {refeicoes.map((refeicao) => (
+                                <SelectItem key={refeicao.valor} value={refeicao.valor}>
+                                  {refeicao.nome}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="alimento">Alimento</Label>
+                          <Select 
+                            value={novoItem.alimento_id} 
+                            onValueChange={(value) => setNovoItem({...novoItem, alimento_id: value})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um alimento" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {alimentos.map((alimento) => (
+                                <SelectItem key={alimento.id} value={alimento.id}>
+                                  {alimento.nome}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
 
-                  <div className="grid grid-cols-4 gap-4">
-                    <div>
-                      <Label htmlFor="quantidade">Quantidade</Label>
-                      <Input
-                        id="quantidade"
-                        type="number"
-                        value={novoItem.quantidade}
-                        onChange={(e) => setNovoItem({...novoItem, quantidade: Number(e.target.value)})}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="unidade">Unidade</Label>
-                      <Select 
-                        value={novoItem.unidade_medida} 
-                        onValueChange={(value) => setNovoItem({...novoItem, unidade_medida: value})}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="g">g</SelectItem>
-                          <SelectItem value="ml">ml</SelectItem>
-                          <SelectItem value="unidade">unidade</SelectItem>
-                          <SelectItem value="colher">colher</SelectItem>
-                          <SelectItem value="xícara">xícara</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="horario">Horário</Label>
-                      <Input
-                        id="horario"
-                        type="time"
-                        value={novoItem.horario_recomendado}
-                        onChange={(e) => setNovoItem({...novoItem, horario_recomendado: e.target.value})}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="observacoes">Observações</Label>
-                      <Input
-                        id="observacoes"
-                        placeholder="Opcional"
-                        value={novoItem.observacoes}
-                        onChange={(e) => setNovoItem({...novoItem, observacoes: e.target.value})}
-                      />
-                    </div>
-                  </div>
+                      <div className="grid grid-cols-4 gap-4">
+                        <div>
+                          <Label htmlFor="quantidade">Quantidade</Label>
+                          <Input
+                            id="quantidade"
+                            type="number"
+                            value={novoItem.quantidade}
+                            onChange={(e) => setNovoItem({...novoItem, quantidade: Number(e.target.value)})}
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="unidade">Unidade</Label>
+                          <Select 
+                            value={novoItem.unidade_medida} 
+                            onValueChange={(value) => setNovoItem({...novoItem, unidade_medida: value})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="g">g</SelectItem>
+                              <SelectItem value="ml">ml</SelectItem>
+                              <SelectItem value="unidade">unidade</SelectItem>
+                              <SelectItem value="colher">colher</SelectItem>
+                              <SelectItem value="xícara">xícara</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="horario">Horário</Label>
+                          <Input
+                            id="horario"
+                            type="time"
+                            value={novoItem.horario_recomendado}
+                            onChange={(e) => setNovoItem({...novoItem, horario_recomendado: e.target.value})}
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="observacoes">Observações</Label>
+                          <Input
+                            id="observacoes"
+                            placeholder="Opcional"
+                            value={novoItem.observacoes}
+                            onChange={(e) => setNovoItem({...novoItem, observacoes: e.target.value})}
+                          />
+                        </div>
+                      </div>
 
-                  <div className="flex gap-2">
-                    <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700">
-                      Adicionar
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => setShowAddForm(false)}>
-                      Cancelar
-                    </Button>
-                  </div>
-                </form>
+                      <div className="flex gap-2">
+                        <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700">
+                          Adicionar
+                        </Button>
+                        <Button type="button" variant="outline" onClick={() => setShowAddForm(false)}>
+                          Cancelar
+                        </Button>
+                      </div>
+                    </form>
+                  </CardContent>
+                </Card>
               )}
 
               {/* Lista de refeições */}
@@ -506,6 +551,8 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
                               <TableHead>Horário</TableHead>
                               <TableHead>Calorias</TableHead>
                               <TableHead>Proteínas</TableHead>
+                              <TableHead>Carboidratos</TableHead>
+                              <TableHead>Gorduras</TableHead>
                               <TableHead>Observações</TableHead>
                               <TableHead>Ações</TableHead>
                             </TableRow>
@@ -520,6 +567,8 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
                                   <TableCell>{item.horario_recomendado || '-'}</TableCell>
                                   <TableCell>{nutrientes.calorias} kcal</TableCell>
                                   <TableCell>{nutrientes.proteinas}g</TableCell>
+                                  <TableCell>{nutrientes.carboidratos}g</TableCell>
+                                  <TableCell>{nutrientes.gorduras}g</TableCell>
                                   <TableCell>{item.observacoes || '-'}</TableCell>
                                   <TableCell>
                                     <Button
@@ -545,6 +594,8 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
               {itensDiaSelecionado.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   Nenhum alimento adicionado para {dia.nome} ainda.
+                  <br />
+                  Clique em "Adicionar Alimento" para começar a montar o plano.
                 </div>
               )}
             </TabsContent>
