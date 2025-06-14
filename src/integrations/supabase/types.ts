@@ -11,52 +11,136 @@ export type Database = {
     Tables: {
       alimentos: {
         Row: {
+          calcio: number | null
           calorias_por_100g: number | null
+          carboidrato: number | null
           carboidratos_por_100g: number | null
           categoria: string | null
+          categoria_taco: string | null
+          cinzas: number | null
+          cobre: number | null
+          codigo_taco: string | null
+          colesterol: number | null
           created_at: string | null
+          energia_kcal: number | null
+          energia_kj: number | null
+          ferro: number | null
+          fibra_alimentar: number | null
           fibras_por_100g: number | null
+          fosforo: number | null
           gorduras_por_100g: number | null
           id: string
           is_publico: boolean | null
+          lipideos: number | null
+          magnesio: number | null
+          manganes: number | null
+          niacina: number | null
           nome: string
           nutricionista_id: string | null
+          piridoxina: number | null
+          potassio: number | null
+          proteina: number | null
           proteinas_por_100g: number | null
           quantidade_padrao: number | null
+          rae: number | null
+          re: number | null
+          retinol: number | null
+          riboflavina: number | null
+          sodio: number | null
+          tiamina: number | null
+          umidade: number | null
           unidade_medida: string | null
           updated_at: string | null
+          vitamina_c: number | null
+          zinco: number | null
         }
         Insert: {
+          calcio?: number | null
           calorias_por_100g?: number | null
+          carboidrato?: number | null
           carboidratos_por_100g?: number | null
           categoria?: string | null
+          categoria_taco?: string | null
+          cinzas?: number | null
+          cobre?: number | null
+          codigo_taco?: string | null
+          colesterol?: number | null
           created_at?: string | null
+          energia_kcal?: number | null
+          energia_kj?: number | null
+          ferro?: number | null
+          fibra_alimentar?: number | null
           fibras_por_100g?: number | null
+          fosforo?: number | null
           gorduras_por_100g?: number | null
           id?: string
           is_publico?: boolean | null
+          lipideos?: number | null
+          magnesio?: number | null
+          manganes?: number | null
+          niacina?: number | null
           nome: string
           nutricionista_id?: string | null
+          piridoxina?: number | null
+          potassio?: number | null
+          proteina?: number | null
           proteinas_por_100g?: number | null
           quantidade_padrao?: number | null
+          rae?: number | null
+          re?: number | null
+          retinol?: number | null
+          riboflavina?: number | null
+          sodio?: number | null
+          tiamina?: number | null
+          umidade?: number | null
           unidade_medida?: string | null
           updated_at?: string | null
+          vitamina_c?: number | null
+          zinco?: number | null
         }
         Update: {
+          calcio?: number | null
           calorias_por_100g?: number | null
+          carboidrato?: number | null
           carboidratos_por_100g?: number | null
           categoria?: string | null
+          categoria_taco?: string | null
+          cinzas?: number | null
+          cobre?: number | null
+          codigo_taco?: string | null
+          colesterol?: number | null
           created_at?: string | null
+          energia_kcal?: number | null
+          energia_kj?: number | null
+          ferro?: number | null
+          fibra_alimentar?: number | null
           fibras_por_100g?: number | null
+          fosforo?: number | null
           gorduras_por_100g?: number | null
           id?: string
           is_publico?: boolean | null
+          lipideos?: number | null
+          magnesio?: number | null
+          manganes?: number | null
+          niacina?: number | null
           nome?: string
           nutricionista_id?: string | null
+          piridoxina?: number | null
+          potassio?: number | null
+          proteina?: number | null
           proteinas_por_100g?: number | null
           quantidade_padrao?: number | null
+          rae?: number | null
+          re?: number | null
+          retinol?: number | null
+          riboflavina?: number | null
+          sodio?: number | null
+          tiamina?: number | null
+          umidade?: number | null
           unidade_medida?: string | null
           updated_at?: string | null
+          vitamina_c?: number | null
+          zinco?: number | null
         }
         Relationships: []
       }

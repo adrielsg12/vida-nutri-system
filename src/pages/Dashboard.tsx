@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { StatsCard } from '@/components/Dashboard/StatsCard';
 import { ProximasConsultas } from '@/components/Dashboard/ProximasConsultas';
@@ -6,6 +5,7 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { Users, Calendar, DollarSign, TrendingUp } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
+import { AniversariantesMes } from '@/components/Dashboard/AniversariantesMes';
 
 export const Dashboard = () => {
   const { stats, proximasConsultas, loading } = useDashboardData();
@@ -152,6 +152,14 @@ export const Dashboard = () => {
           />
         </div>
 
+        {/* Aba de aniversariantes */}
+        <div className="bg-card rounded-lg p-6 border shadow-sm">
+          <AniversariantesMes />
+        </div>
+      </div>
+
+      {/* Gráficos etc. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Placeholder for future charts */}
         <div className="bg-card rounded-lg p-6 border shadow-sm">
           <h3 className="text-lg font-semibold mb-4 text-foreground">Resumo Semanal</h3>
