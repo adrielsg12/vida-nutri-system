@@ -496,6 +496,90 @@ export type Database = {
         }
         Relationships: []
       }
+      registros_consulta: {
+        Row: {
+          altura: number | null
+          circunferencia_cintura: number | null
+          circunferencia_quadril: number | null
+          conduta_nutricional: string | null
+          consulta_id: string
+          created_at: string | null
+          evolucao: string | null
+          frequencia_cardiaca: number | null
+          id: string
+          massa_muscular: number | null
+          nutricionista_id: string
+          observacoes_clinicas: string | null
+          paciente_id: string
+          percentual_gordura: number | null
+          peso: number | null
+          pressao_arterial_diastolica: number | null
+          pressao_arterial_sistolica: number | null
+          queixas_principais: string | null
+          retorno_recomendado: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          altura?: number | null
+          circunferencia_cintura?: number | null
+          circunferencia_quadril?: number | null
+          conduta_nutricional?: string | null
+          consulta_id: string
+          created_at?: string | null
+          evolucao?: string | null
+          frequencia_cardiaca?: number | null
+          id?: string
+          massa_muscular?: number | null
+          nutricionista_id: string
+          observacoes_clinicas?: string | null
+          paciente_id: string
+          percentual_gordura?: number | null
+          peso?: number | null
+          pressao_arterial_diastolica?: number | null
+          pressao_arterial_sistolica?: number | null
+          queixas_principais?: string | null
+          retorno_recomendado?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          altura?: number | null
+          circunferencia_cintura?: number | null
+          circunferencia_quadril?: number | null
+          conduta_nutricional?: string | null
+          consulta_id?: string
+          created_at?: string | null
+          evolucao?: string | null
+          frequencia_cardiaca?: number | null
+          id?: string
+          massa_muscular?: number | null
+          nutricionista_id?: string
+          observacoes_clinicas?: string | null
+          paciente_id?: string
+          percentual_gordura?: number | null
+          peso?: number | null
+          pressao_arterial_diastolica?: number | null
+          pressao_arterial_sistolica?: number | null
+          queixas_principais?: string | null
+          retorno_recomendado?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registros_consulta_consulta_id_fkey"
+            columns: ["consulta_id"]
+            isOneToOne: false
+            referencedRelation: "consultas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registros_consulta_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

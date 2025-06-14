@@ -12,6 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { NovaConsultaDialog } from '@/components/NovaConsultaDialog';
+import { RegistroConsultaDialog } from '@/components/RegistroConsultaDialog';
 import { Calendar, Plus, Clock, Play } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -32,6 +33,8 @@ interface Consulta {
 export const Consultas = () => {
   const [consultas, setConsultas] = useState<Consulta[]>([]);
   const [showNovaConsulta, setShowNovaConsulta] = useState(false);
+  const [showRegistroConsulta, setShowRegistroConsulta] = useState(false);
+  const [consultaSelecionada, setConsultaSelecionada] = useState<Consulta | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -71,28 +74,9 @@ export const Consultas = () => {
     }
   };
 
-  const handleIniciarConsulta = async (consultaId: string) => {
-    try {
-      const { error } = await supabase
-        .from('consultas')
-        .update({ status: 'finalizada' })
-        .eq('id', consultaId);
-
-      if (error) throw error;
-
-      await fetchConsultas();
-      toast({
-        title: 'Sucesso',
-        description: 'Consulta finalizada com sucesso!',
-      });
-    } catch (error) {
-      console.error('Erro ao finalizar consulta:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível finalizar a consulta.',
-        variant: 'destructive',
-      });
-    }
+  const handleIniciarConsulta = (consulta: Consulta) => {
+    setConsultaSelecionada(consulta);
+    setShowRegistroConsulta(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -173,7 +157,7 @@ export const Consultas = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleIniciarConsulta(consulta.id)}
+                          onClick={() => handleIniciarConsulta(consulta)}
                           className="flex items-center gap-1"
                         >
                           <Play className="h-3 w-3" />
@@ -197,6 +181,20 @@ export const Consultas = () => {
           fetchConsultas();
         }}
       />
+
+      {consultaSelecionada && (
+        <RegistroConsultaDialog
+          open={showRegistroConsulta}
+          onClose={() => {
+            setShowRegistroConsulta(false);
+            setConsultaSelecionada(null);
+          }}
+          onSuccess={() => {
+            fetchConsultas();
+          }}
+          consulta={consultaSelecionada}
+        />
+      )}
     </div>
   );
 };
