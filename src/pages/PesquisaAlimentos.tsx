@@ -201,8 +201,6 @@ export const PesquisaAlimentos = () => {
     });
   };
 
-  const categorias = [...new Set(alimentos.map(a => a.categoria).filter(Boolean))].sort();
-
   const handleFiltroChange = (field: string, value: string) => {
     setFiltros(prev => ({ ...prev, [field]: value }));
   };
