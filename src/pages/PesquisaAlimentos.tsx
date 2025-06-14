@@ -3,12 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Search, Filter, ChefHat, ArrowUp, ArrowDown } from 'lucide-react';
+import { TabelaAlimentosTaco } from '@/components/Alimentos/TabelaAlimentosTaco';
 
 interface Alimento {
   id: string;
@@ -434,45 +434,7 @@ export const PesquisaAlimentos = () => {
               Nenhum alimento encontrado com os filtros aplicados.
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Unidade</TableHead>
-                    <TableHead>Proteína</TableHead>
-                    <TableHead>Lipídeos</TableHead>
-                    <TableHead>Carboidrato</TableHead>
-                    <TableHead>Energia (kcal)</TableHead>
-                    <TableHead>Fibra</TableHead>
-                    <TableHead>Colesterol</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {alimentosFiltrados.map(alimento => (
-                    <React.Fragment key={alimento.id}>
-                      <TableRow>
-                        <TableCell className="font-medium">{alimento.nome}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{alimento.categoria}</Badge>
-                        </TableCell>
-                        <TableCell>{alimento.unidade_medida || 'g'}</TableCell>
-                        <TableCell>{alimento.proteina ?? alimento.proteinas_por_100g ?? '-'}</TableCell>
-                        <TableCell>{alimento.lipideos ?? alimento.gorduras_por_100g ?? '-'}</TableCell>
-                        <TableCell>{alimento.carboidrato ?? alimento.carboidratos_por_100g ?? '-'}</TableCell>
-                        <TableCell>{alimento.energia_kcal ?? alimento.calorias_por_100g ?? '-'}</TableCell>
-                        <TableCell>{alimento.fibra_alimentar ?? alimento.fibras_por_100g ?? '-'}</TableCell>
-                        <TableCell>{alimento.colesterol ?? '-'}</TableCell>
-                      </TableRow>
-                      {renderMicronutrientes(alimento)}
-                      {renderVitamins(alimento)}
-                    </React.Fragment>
-                  ))}
-                </TableBody>
-              </Table>
-              <div className="text-xs text-gray-400 mt-1">* Exibindo macro e micronutrientes da TACO. Em caso de dúvidas, consulte a Tabela TACO completa do Ministério da Saúde.</div>
-            </div>
+            <TabelaAlimentosTaco alimentos={alimentosFiltrados} />
           )}
         </CardContent>
       </Card>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { NovaConsultaDialog } from '@/components/NovaConsultaDialog';
@@ -133,7 +132,7 @@ export const Consultas = () => {
         }}
       />
 
-      {consultaSelecionada && (
+      {consultaSelecionada && showRegistroConsulta && (
         <RegistroConsultaDialog
           open={showRegistroConsulta}
           onClose={() => {
@@ -147,7 +146,7 @@ export const Consultas = () => {
         />
       )}
 
-      {pacienteSelecionado && (
+      {pacienteSelecionado && showRelatorioEvolucao && (
         <RelatorioEvolucaoDialog
           open={showRelatorioEvolucao}
           onClose={() => {
