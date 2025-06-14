@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,6 +25,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Calculator, Clock, ArrowRightLeft, Trash2, User } from 'lucide-react';
 import { SubstituicaoAlimentoDialog } from './SubstituicaoAlimentoDialog';
+import { EditarPlanoAlimentarDialog } from './EditarPlanoAlimentarDialog';
+import { Edit } from "lucide-react";
 
 interface PlanoAlimentar {
   id: string;
@@ -73,6 +74,8 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
   const [showSubstituicao, setShowSubstituicao] = useState(false);
   const [alimentoParaSubstituir, setAlimentoParaSubstituir] = useState<any>(null);
   const [itemParaSubstituir, setItemParaSubstituir] = useState<string | null>(null);
+  const [showEditar, setShowEditar] = useState(false);
+  const [pacientes, setPacientes] = useState<any[]>([]);
   
   const { toast } = useToast();
   const { user } = useAuth();
@@ -200,6 +203,23 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
     }
   }, [open, planoId]);
 
+  // Carregar lista de pacientes para usar no editar
+  useEffect(() => {
+    const loadPacientes = async () => {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('pacientes')
+        .select('id, nome')
+        .eq('nutricionista_id', user.id)
+        .eq('status', 'ativo')
+        .order('nome');
+      if (!error) setPacientes(data || []);
+    };
+    if (open) {
+      loadPacientes();
+    }
+  }, [open, user]);
+
   const calcularNutrientesPorItem = (item: ItemPlano) => {
     const fator = item.quantidade / 100;
     return {
@@ -296,29 +316,42 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
                 </div>
               </div>
               
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Excluir Plano
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Excluir Plano Alimentar</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Tem certeza que deseja excluir o plano "{plano.titulo}"? 
-                      Esta ação não pode ser desfeita e todos os itens do plano serão removidos.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={excluirPlano} className="bg-red-600 hover:bg-red-700">
-                      Sim, excluir
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <div className='flex gap-2'>
+                {/* Edit Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-blue-600 hover:text-blue-700"
+                  onClick={() => setShowEditar(true)}
+                >
+                  <Edit className="w-4 h-4 mr-1" />
+                  Editar
+                </Button>
+                {/* Delete (Excluir) Button */}
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Excluir Plano
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir Plano Alimentar</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja excluir o plano "{plano.titulo}"? 
+                        Esta ação não pode ser desfeita e todos os itens do plano serão removidos.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={excluirPlano} className="bg-red-600 hover:bg-red-700">
+                        Sim, excluir
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           </DialogHeader>
 
@@ -430,6 +463,27 @@ export const VisualizarPlanoDialog = ({ open, onClose, planoId }: VisualizarPlan
           </div>
         </DialogContent>
       </Dialog>
+      {/* Dialog de Editar */}
+      {plano && (
+        <EditarPlanoAlimentarDialog
+          open={showEditar}
+          onClose={() => setShowEditar(false)}
+          plano={{
+            id: plano.id,
+            titulo: plano.titulo,
+            descricao: plano.descricao,
+            paciente_id: plano.pacientes?.id || "",
+            data_inicio: plano.data_inicio || "",
+            data_fim: plano.data_fim || "",
+            status: plano.status,
+          }}
+          pacientes={pacientes}
+          onSuccess={() => {
+            setShowEditar(false);
+            carregarPlano();
+          }}
+        />
+      )}
 
       {alimentoParaSubstituir && (
         <SubstituicaoAlimentoDialog
