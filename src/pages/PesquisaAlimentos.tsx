@@ -256,6 +256,15 @@ export const PesquisaAlimentos = () => {
     </tr>
   );
 
+  // Sanitize categorias: only use non-empty, non-falsy, unique categories for SelectItem options
+  const categorias = [
+    ...new Set(
+      alimentos
+        .map(a => a.categoria)
+        .filter((c): c is string => typeof c === "string" && c.trim() !== "")
+    )
+  ].sort();
+
   // Render
 
   return (
