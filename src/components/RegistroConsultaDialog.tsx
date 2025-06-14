@@ -43,6 +43,10 @@ export const RegistroConsultaDialog = ({
     frequencia_cardiaca: '',
     circunferencia_cintura: '',
     circunferencia_quadril: '',
+    circunferencia_peito: '',
+    circunferencia_panturrilha: '',
+    circunferencia_coxa: '',
+    circunferencia_biceps: '',
     percentual_gordura: '',
     massa_muscular: '',
     observacoes_clinicas: '',
@@ -84,6 +88,10 @@ export const RegistroConsultaDialog = ({
           frequencia_cardiaca: formData.frequencia_cardiaca ? parseInt(formData.frequencia_cardiaca) : null,
           circunferencia_cintura: formData.circunferencia_cintura ? parseFloat(formData.circunferencia_cintura) : null,
           circunferencia_quadril: formData.circunferencia_quadril ? parseFloat(formData.circunferencia_quadril) : null,
+          circunferencia_peito: formData.circunferencia_peito ? parseFloat(formData.circunferencia_peito) : null,
+          circunferencia_panturrilha: formData.circunferencia_panturrilha ? parseFloat(formData.circunferencia_panturrilha) : null,
+          circunferencia_coxa: formData.circunferencia_coxa ? parseFloat(formData.circunferencia_coxa) : null,
+          circunferencia_biceps: formData.circunferencia_biceps ? parseFloat(formData.circunferencia_biceps) : null,
           percentual_gordura: formData.percentual_gordura ? parseFloat(formData.percentual_gordura) : null,
           massa_muscular: formData.massa_muscular ? parseFloat(formData.massa_muscular) : null,
           observacoes_clinicas: formData.observacoes_clinicas || null,
@@ -132,6 +140,10 @@ export const RegistroConsultaDialog = ({
         frequencia_cardiaca: '',
         circunferencia_cintura: '',
         circunferencia_quadril: '',
+        circunferencia_peito: '',
+        circunferencia_panturrilha: '',
+        circunferencia_coxa: '',
+        circunferencia_biceps: '',
         percentual_gordura: '',
         massa_muscular: '',
         observacoes_clinicas: '',
@@ -157,7 +169,7 @@ export const RegistroConsultaDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Registrar Consulta</DialogTitle>
           <DialogDescription>
@@ -165,7 +177,7 @@ export const RegistroConsultaDialog = ({
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Dados Antropométricos */}
           <div className="space-y-4">
             <h3 className="font-medium text-gray-900">Dados Antropométricos</h3>
@@ -196,31 +208,6 @@ export const RegistroConsultaDialog = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="circunferencia_cintura">Circunferência da Cintura (cm)</Label>
-                <Input
-                  id="circunferencia_cintura"
-                  type="number"
-                  step="0.1"
-                  placeholder="Ex: 85.0"
-                  value={formData.circunferencia_cintura}
-                  onChange={(e) => setFormData({...formData, circunferencia_cintura: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="circunferencia_quadril">Circunferência do Quadril (cm)</Label>
-                <Input
-                  id="circunferencia_quadril"
-                  type="number"
-                  step="0.1"
-                  placeholder="Ex: 95.0"
-                  value={formData.circunferencia_quadril}
-                  onChange={(e) => setFormData({...formData, circunferencia_quadril: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
                 <Label htmlFor="percentual_gordura">Percentual de Gordura (%)</Label>
                 <Input
                   id="percentual_gordura"
@@ -240,6 +227,85 @@ export const RegistroConsultaDialog = ({
                   placeholder="Ex: 45.0"
                   value={formData.massa_muscular}
                   onChange={(e) => setFormData({...formData, massa_muscular: e.target.value})}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Circunferências */}
+          <div className="space-y-4">
+            <h3 className="font-medium text-gray-900">Circunferências (cm)</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="circunferencia_cintura">Cintura</Label>
+                <Input
+                  id="circunferencia_cintura"
+                  type="number"
+                  step="0.1"
+                  placeholder="Ex: 85.0"
+                  value={formData.circunferencia_cintura}
+                  onChange={(e) => setFormData({...formData, circunferencia_cintura: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="circunferencia_quadril">Quadril</Label>
+                <Input
+                  id="circunferencia_quadril"
+                  type="number"
+                  step="0.1"
+                  placeholder="Ex: 95.0"
+                  value={formData.circunferencia_quadril}
+                  onChange={(e) => setFormData({...formData, circunferencia_quadril: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="circunferencia_peito">Peito</Label>
+                <Input
+                  id="circunferencia_peito"
+                  type="number"
+                  step="0.1"
+                  placeholder="Ex: 100.0"
+                  value={formData.circunferencia_peito}
+                  onChange={(e) => setFormData({...formData, circunferencia_peito: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="circunferencia_panturrilha">Panturrilha</Label>
+                <Input
+                  id="circunferencia_panturrilha"
+                  type="number"
+                  step="0.1"
+                  placeholder="Ex: 35.0"
+                  value={formData.circunferencia_panturrilha}
+                  onChange={(e) => setFormData({...formData, circunferencia_panturrilha: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="circunferencia_coxa">Coxa</Label>
+                <Input
+                  id="circunferencia_coxa"
+                  type="number"
+                  step="0.1"
+                  placeholder="Ex: 55.0"
+                  value={formData.circunferencia_coxa}
+                  onChange={(e) => setFormData({...formData, circunferencia_coxa: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="circunferencia_biceps">Bíceps</Label>
+                <Input
+                  id="circunferencia_biceps"
+                  type="number"
+                  step="0.1"
+                  placeholder="Ex: 30.0"
+                  value={formData.circunferencia_biceps}
+                  onChange={(e) => setFormData({...formData, circunferencia_biceps: e.target.value})}
                 />
               </div>
             </div>

@@ -499,7 +499,11 @@ export type Database = {
       registros_consulta: {
         Row: {
           altura: number | null
+          circunferencia_biceps: number | null
           circunferencia_cintura: number | null
+          circunferencia_coxa: number | null
+          circunferencia_panturrilha: number | null
+          circunferencia_peito: number | null
           circunferencia_quadril: number | null
           conduta_nutricional: string | null
           consulta_id: string
@@ -521,7 +525,11 @@ export type Database = {
         }
         Insert: {
           altura?: number | null
+          circunferencia_biceps?: number | null
           circunferencia_cintura?: number | null
+          circunferencia_coxa?: number | null
+          circunferencia_panturrilha?: number | null
+          circunferencia_peito?: number | null
           circunferencia_quadril?: number | null
           conduta_nutricional?: string | null
           consulta_id: string
@@ -543,7 +551,11 @@ export type Database = {
         }
         Update: {
           altura?: number | null
+          circunferencia_biceps?: number | null
           circunferencia_cintura?: number | null
+          circunferencia_coxa?: number | null
+          circunferencia_panturrilha?: number | null
+          circunferencia_peito?: number | null
           circunferencia_quadril?: number | null
           conduta_nutricional?: string | null
           consulta_id?: string
@@ -573,6 +585,50 @@ export type Database = {
           },
           {
             foreignKeyName: "registros_consulta_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      relatorios_evolucao: {
+        Row: {
+          created_at: string | null
+          dados_evolucao: Json
+          id: string
+          nutricionista_id: string
+          observacoes: string | null
+          paciente_id: string
+          periodo_fim: string
+          periodo_inicio: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          dados_evolucao: Json
+          id?: string
+          nutricionista_id: string
+          observacoes?: string | null
+          paciente_id: string
+          periodo_fim: string
+          periodo_inicio: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          dados_evolucao?: Json
+          id?: string
+          nutricionista_id?: string
+          observacoes?: string | null
+          paciente_id?: string
+          periodo_fim?: string
+          periodo_inicio?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relatorios_evolucao_paciente_id_fkey"
             columns: ["paciente_id"]
             isOneToOne: false
             referencedRelation: "pacientes"

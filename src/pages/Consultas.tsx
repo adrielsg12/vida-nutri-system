@@ -13,7 +13,8 @@ import {
 } from '@/components/ui/table';
 import { NovaConsultaDialog } from '@/components/NovaConsultaDialog';
 import { RegistroConsultaDialog } from '@/components/RegistroConsultaDialog';
-import { Calendar, Plus, Clock, Play } from 'lucide-react';
+import { RelatorioEvolucaoDialog } from '@/components/RelatorioEvolucaoDialog';
+import { Calendar, Plus, Clock, Play, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -34,7 +35,9 @@ export const Consultas = () => {
   const [consultas, setConsultas] = useState<Consulta[]>([]);
   const [showNovaConsulta, setShowNovaConsulta] = useState(false);
   const [showRegistroConsulta, setShowRegistroConsulta] = useState(false);
+  const [showRelatorioEvolucao, setShowRelatorioEvolucao] = useState(false);
   const [consultaSelecionada, setConsultaSelecionada] = useState<Consulta | null>(null);
+  const [pacienteSelecionado, setPacienteSelecionado] = useState<{id: string; nome: string} | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -77,6 +80,14 @@ export const Consultas = () => {
   const handleIniciarConsulta = (consulta: Consulta) => {
     setConsultaSelecionada(consulta);
     setShowRegistroConsulta(true);
+  };
+
+  const handleVerRelatorio = (consulta: Consulta) => {
+    setPacienteSelecionado({
+      id: consulta.paciente_id,
+      nome: consulta.pacientes?.nome || 'Paciente não encontrado'
+    });
+    setShowRelatorioEvolucao(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -153,17 +164,28 @@ export const Consultas = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {consulta.status === 'agendada' && (
+                      <div className="flex gap-2">
+                        {consulta.status === 'agendada' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleIniciarConsulta(consulta)}
+                            className="flex items-center gap-1"
+                          >
+                            <Play className="h-3 w-3" />
+                            Iniciar Consulta
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleIniciarConsulta(consulta)}
+                          onClick={() => handleVerRelatorio(consulta)}
                           className="flex items-center gap-1"
                         >
-                          <Play className="h-3 w-3" />
-                          Iniciar Consulta
+                          <FileText className="h-3 w-3" />
+                          Relatório
                         </Button>
-                      )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -193,6 +215,17 @@ export const Consultas = () => {
             fetchConsultas();
           }}
           consulta={consultaSelecionada}
+        />
+      )}
+
+      {pacienteSelecionado && (
+        <RelatorioEvolucaoDialog
+          open={showRelatorioEvolucao}
+          onClose={() => {
+            setShowRelatorioEvolucao(false);
+            setPacienteSelecionado(null);
+          }}
+          paciente={pacienteSelecionado}
         />
       )}
     </div>
