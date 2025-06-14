@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { Index } from '@/pages/Index';
+import Index from '@/pages/Index';
 import { Auth } from '@/pages/Auth';
 import { Dashboard } from '@/pages/Dashboard';
 import { Pacientes } from '@/pages/Pacientes';
@@ -9,7 +10,7 @@ import { PlanosAlimentares } from '@/pages/PlanosAlimentares';
 import { Financeiro } from '@/pages/Financeiro';
 import { Comunicacao } from '@/pages/Comunicacao';
 import { Configuracoes } from '@/pages/Configuracoes';
-import { NotFound } from '@/pages/NotFound';
+import NotFound from '@/pages/NotFound';
 import { AcessoNegado } from '@/pages/AcessoNegado';
 import { AcessoRejeitado } from '@/pages/AcessoRejeitado';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
