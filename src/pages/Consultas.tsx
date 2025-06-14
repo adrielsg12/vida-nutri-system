@@ -8,6 +8,8 @@ import { ConsultasHeader } from '@/components/Consultas/ConsultasHeader';
 import { ConsultasTable } from '@/components/Consultas/ConsultasTable';
 import { useConsultas } from '@/hooks/useConsultas';
 import { Calendar } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface Consulta {
   id: string;
@@ -27,6 +29,7 @@ export const Consultas = () => {
   const [showRelatorioEvolucao, setShowRelatorioEvolucao] = useState(false);
   const [consultaSelecionada, setConsultaSelecionada] = useState<Consulta | null>(null);
   const [pacienteSelecionado, setPacienteSelecionado] = useState<{id: string; nome: string} | null>(null);
+  const { toast } = useToast();
 
   const handleIniciarConsulta = (consulta: Consulta) => {
     setConsultaSelecionada(consulta);
@@ -39,6 +42,53 @@ export const Consultas = () => {
       nome: consulta.pacientes?.nome || 'Paciente não encontrado'
     });
     setShowRelatorioEvolucao(true);
+  };
+
+  // Função para encerrar consulta (finalizar)
+  const handleEncerrarConsulta = async (consulta: Consulta) => {
+    const ok = window.confirm("Deseja realmente encerrar/finalizar esta consulta?");
+    if (!ok) return;
+
+    const { error } = await supabase
+      .from('consultas')
+      .update({ status: 'finalizada' })
+      .eq('id', consulta.id);
+
+    if (error) {
+      toast({
+        title: "Erro ao encerrar consulta",
+        description: "Não foi possível encerrar a consulta.",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Consulta encerrada!",
+        description: "A consulta foi finalizada com sucesso.",
+      });
+      fetchConsultas();
+    }
+  };
+
+  // Função para excluir consulta
+  const handleExcluirConsulta = async (consulta: Consulta) => {
+    const { error } = await supabase
+      .from('consultas')
+      .delete()
+      .eq('id', consulta.id);
+
+    if (error) {
+      toast({
+        title: "Erro ao excluir consulta",
+        description: "Não foi possível excluir a consulta.",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Consulta excluída!",
+        description: "A consulta foi removida com sucesso.",
+      });
+      fetchConsultas();
+    }
   };
 
   if (loading) {
@@ -68,6 +118,8 @@ export const Consultas = () => {
             consultas={consultas}
             onIniciarConsulta={handleIniciarConsulta}
             onVerRelatorio={handleVerRelatorio}
+            onEncerrarConsulta={handleEncerrarConsulta}
+            onExcluirConsulta={handleExcluirConsulta}
           />
         </CardContent>
       </Card>
