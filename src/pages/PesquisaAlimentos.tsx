@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -208,6 +207,55 @@ export const PesquisaAlimentos = () => {
     setFiltros(prev => ({ ...prev, [field]: value }));
   };
 
+  // Adaptação: bloco para exibir micronutrientes
+  const renderMicronutrientes = (alimento: Alimento) => (
+    <tr className="bg-gray-50">
+      <TableCell colSpan={3} className="font-semibold text-gray-700">Micronutrientes (por 100g)</TableCell>
+      <TableCell>
+        <span title="Cálcio">{(alimento.calcio ?? '-')}</span>
+      </TableCell>
+      <TableCell>
+        <span title="Ferro">{(alimento.ferro ?? '-')}</span>
+      </TableCell>
+      <TableCell>
+        <span title="Magnésio">{(alimento.magnesio ?? '-')}</span>
+      </TableCell>
+      <TableCell>
+        <span title="Sódio">{(alimento.sodio ?? '-')}</span>
+      </TableCell>
+      <TableCell>
+        <span title="Potássio">{(alimento.potassio ?? '-')}</span>
+      </TableCell>
+      <TableCell>
+        <span title="Zinco">{(alimento.zinco ?? '-')}</span>
+      </TableCell>
+    </tr>
+  );
+
+  const renderVitamins = (alimento: Alimento) => (
+    <tr className="bg-gray-50">
+      <TableCell colSpan={3} className="font-semibold text-gray-700">Vitaminas (por 100g)</TableCell>
+      <TableCell>
+        <span title="Vitamina C">{(alimento.vitamina_c ?? '-')}</span>
+      </TableCell>
+      <TableCell>
+        <span title="Tiamina">{(alimento.tiamina ?? '-')}</span>
+      </TableCell>
+      <TableCell>
+        <span title="Riboflavina">{(alimento.riboflavina ?? '-')}</span>
+      </TableCell>
+      <TableCell>
+        <span title="Piridoxina">{(alimento.piridoxina ?? '-')}</span>
+      </TableCell>
+      <TableCell>
+        <span title="Niacina">{(alimento.niacina ?? '-')}</span>
+      </TableCell>
+      <TableCell>
+        <span title="Vitamina A (RE)">{(alimento.re ?? '-')}</span>
+      </TableCell>
+    </tr>
+  );
+
   // Render
 
   return (
@@ -403,23 +451,27 @@ export const PesquisaAlimentos = () => {
                 </TableHeader>
                 <TableBody>
                   {alimentosFiltrados.map(alimento => (
-                    <TableRow key={alimento.id}>
-                      <TableCell className="font-medium">{alimento.nome}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{alimento.categoria}</Badge>
-                      </TableCell>
-                      <TableCell>{alimento.unidade_medida || 'g'}</TableCell>
-                      <TableCell>{alimento.proteina ?? alimento.proteinas_por_100g ?? '-'}</TableCell>
-                      <TableCell>{alimento.lipideos ?? alimento.gorduras_por_100g ?? '-'}</TableCell>
-                      <TableCell>{alimento.carboidrato ?? alimento.carboidratos_por_100g ?? '-'}</TableCell>
-                      <TableCell>{alimento.energia_kcal ?? alimento.calorias_por_100g ?? '-'}</TableCell>
-                      <TableCell>{alimento.fibra_alimentar ?? alimento.fibras_por_100g ?? '-'}</TableCell>
-                      <TableCell>{alimento.colesterol ?? '-'}</TableCell>
-                    </TableRow>
+                    <React.Fragment key={alimento.id}>
+                      <TableRow>
+                        <TableCell className="font-medium">{alimento.nome}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{alimento.categoria}</Badge>
+                        </TableCell>
+                        <TableCell>{alimento.unidade_medida || 'g'}</TableCell>
+                        <TableCell>{alimento.proteina ?? alimento.proteinas_por_100g ?? '-'}</TableCell>
+                        <TableCell>{alimento.lipideos ?? alimento.gorduras_por_100g ?? '-'}</TableCell>
+                        <TableCell>{alimento.carboidrato ?? alimento.carboidratos_por_100g ?? '-'}</TableCell>
+                        <TableCell>{alimento.energia_kcal ?? alimento.calorias_por_100g ?? '-'}</TableCell>
+                        <TableCell>{alimento.fibra_alimentar ?? alimento.fibras_por_100g ?? '-'}</TableCell>
+                        <TableCell>{alimento.colesterol ?? '-'}</TableCell>
+                      </TableRow>
+                      {renderMicronutrientes(alimento)}
+                      {renderVitamins(alimento)}
+                    </React.Fragment>
                   ))}
                 </TableBody>
               </Table>
-              <div className="text-xs text-gray-400 mt-1">* Mostrando os principais campos nutricionais. Use a busca para localizar alimentos TACO completos.</div>
+              <div className="text-xs text-gray-400 mt-1">* Exibindo macro e micronutrientes da TACO. Em caso de dúvidas, consulte a Tabela TACO completa do Ministério da Saúde.</div>
             </div>
           )}
         </CardContent>
