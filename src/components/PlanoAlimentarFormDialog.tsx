@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -75,6 +74,9 @@ export const PlanoAlimentarFormDialog = ({
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
+  // NEW: Add filter state for alimento search
+  const [alimentoSearch, setAlimentoSearch] = useState<string[]>(DIAS.map(() => ""));
+
   useEffect(() => {
     if (open) {
       setFormData({
@@ -92,6 +94,11 @@ export const PlanoAlimentarFormDialog = ({
       .select('id, nome, categoria, unidade_medida')
       .order('nome');
     if (!error && data) setAlimentos(data);
+  };
+
+  // NEW: helper to get items for a day
+  const getItemsByDay = (dayIdx: number) => {
+    return formData.itens_plano_alimentar.filter(item => item.dia_semana === dayIdx);
   };
 
   const updateFormValue = (key: string, value: any) => {
@@ -134,6 +141,13 @@ export const PlanoAlimentarFormDialog = ({
       ...prev,
       itens_plano_alimentar: prev.itens_plano_alimentar.filter((_, i) => i !== idx)
     }));
+  };
+
+  // Helper to show only alimentos matching search
+  const filterAlimentos = (search: string) => {
+    return !search
+      ? alimentos
+      : alimentos.filter(a => a.nome.toLowerCase().includes(search.toLowerCase()));
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -288,88 +302,143 @@ export const PlanoAlimentarFormDialog = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {formData.itens_plano_alimentar.map((item, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell>
-                      <Select
-                        value={String(item.dia_semana)}
-                        onValueChange={v => handleItemChange(idx, "dia_semana", Number(v))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Dia" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {DIAS.map((d, i) =>
-                            <SelectItem key={i} value={String(i)}>{d}</SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={item.refeicao}
-                        onValueChange={v => handleItemChange(idx, "refeicao", v)}
-                      >
-                        <SelectTrigger><SelectValue placeholder="Refeição" /></SelectTrigger>
-                        <SelectContent>
-                          {REFEICOES.map((r) =>
-                            <SelectItem key={r} value={r}>{r}</SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={item.alimento_id}
-                        onValueChange={v => handleItemChange(idx, "alimento_id", v)}
-                      >
-                        <SelectTrigger><SelectValue placeholder="Alimento" /></SelectTrigger>
-                        <SelectContent>
-                          {alimentos.map(alimento =>
-                            <SelectItem key={alimento.id} value={alimento.id}>{alimento.nome}</SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        value={item.quantidade}
-                        min={0}
-                        onChange={e => handleItemChange(idx, "quantidade", Number(e.target.value))}
-                        className="w-20"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        value={item.unidade_medida}
-                        onChange={e => handleItemChange(idx, "unidade_medida", e.target.value)}
-                        className="w-16"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="time"
-                        value={item.horario_recomendado || ""}
-                        onChange={e => handleItemChange(idx, "horario_recomendado", e.target.value)}
-                        className="w-24"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        value={item.observacoes || ""}
-                        onChange={e => handleItemChange(idx, "observacoes", e.target.value)}
-                        className="w-24"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Button type="button" variant="destructive" size="sm"
-                        onClick={() => handleRemoveItem(idx)}>
-                        Remover
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {DIAS.map((dia, diaIdx) => {
+                  // Para cada dia, mostra uma linha "adicionar" se não houver item, senão mostra todos do dia
+                  const items = getItemsByDay(diaIdx);
+                  return (
+                    <React.Fragment key={diaIdx}>
+                      {items.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center text-gray-400">
+                            <span className="mr-2 font-semibold">{dia}</span>
+                            Nenhum item cadastrado para este dia.
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="ml-2 text-blue-600"
+                              onClick={() =>
+                                setFormData(prev => ({
+                                  ...prev,
+                                  itens_plano_alimentar: [
+                                    ...prev.itens_plano_alimentar,
+                                    {
+                                      dia_semana: diaIdx,
+                                      refeicao: REFEICOES[0],
+                                      quantidade: 100,
+                                      unidade_medida: 'g',
+                                      alimento_id: alimentos[0]?.id || "",
+                                      horario_recomendado: "",
+                                      observacoes: "",
+                                    }
+                                  ]
+                                }))
+                              }
+                            >
+                              + Adicionar Alimento nesse dia
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        items.map((item, idxItem) => {
+                          // Indice global para atualizar/remover corretamente
+                          const idx = formData.itens_plano_alimentar.findIndex(i => i === item);
+                          return (
+                            <TableRow key={idx}>
+                              <TableCell>
+                                <span className="font-semibold">{dia}</span>
+                              </TableCell>
+                              <TableCell>
+                                <Select
+                                  value={item.refeicao}
+                                  onValueChange={v => handleItemChange(idx, "refeicao", v)}
+                                >
+                                  <SelectTrigger><SelectValue placeholder="Refeição" /></SelectTrigger>
+                                  <SelectContent>
+                                    {REFEICOES.map((r) =>
+                                      <SelectItem key={r} value={r}>{r}</SelectItem>
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              <TableCell>
+                                <div>
+                                  {/* Campo de busca dentro do dropdown */}
+                                  <Select
+                                    value={item.alimento_id}
+                                    onValueChange={v => handleItemChange(idx, "alimento_id", v)}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Alimento" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <div className="px-2 py-1 sticky top-0 z-10 bg-white">
+                                        <input
+                                          type="text"
+                                          placeholder="Buscar alimento..."
+                                          className="w-full border rounded px-2 py-1 mb-2 text-sm bg-white"
+                                          value={alimentoSearch[diaIdx] || ""}
+                                          onChange={e => {
+                                            const newArr = [...alimentoSearch];
+                                            newArr[diaIdx] = e.target.value;
+                                            setAlimentoSearch(newArr);
+                                          }}
+                                          // Impede click fechar dropdown
+                                          onClick={e => e.stopPropagation()}
+                                        />
+                                      </div>
+                                      {filterAlimentos(alimentoSearch[diaIdx]).map(alimento =>
+                                        <SelectItem key={alimento.id} value={alimento.id}>
+                                          {alimento.nome}
+                                        </SelectItem>
+                                      )}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  value={item.quantidade}
+                                  min={0}
+                                  onChange={e => handleItemChange(idx, "quantidade", Number(e.target.value))}
+                                  className="w-20"
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  value={item.unidade_medida}
+                                  onChange={e => handleItemChange(idx, "unidade_medida", e.target.value)}
+                                  className="w-16"
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  type="time"
+                                  value={item.horario_recomendado || ""}
+                                  onChange={e => handleItemChange(idx, "horario_recomendado", e.target.value)}
+                                  className="w-24"
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  value={item.observacoes || ""}
+                                  onChange={e => handleItemChange(idx, "observacoes", e.target.value)}
+                                  className="w-24"
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Button type="button" variant="destructive" size="sm"
+                                  onClick={() => handleRemoveItem(idx)}>
+                                  Remover
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )}
+                    </React.Fragment>
+                  )
+                })}
               </TableBody>
             </Table>
           </div>
@@ -384,4 +453,3 @@ export const PlanoAlimentarFormDialog = ({
     </Dialog>
   );
 };
-
