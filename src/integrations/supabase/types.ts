@@ -9,6 +9,57 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      alimentos: {
+        Row: {
+          calorias_por_100g: number | null
+          carboidratos_por_100g: number | null
+          categoria: string | null
+          created_at: string | null
+          fibras_por_100g: number | null
+          gorduras_por_100g: number | null
+          id: string
+          is_publico: boolean | null
+          nome: string
+          nutricionista_id: string | null
+          proteinas_por_100g: number | null
+          quantidade_padrao: number | null
+          unidade_medida: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          calorias_por_100g?: number | null
+          carboidratos_por_100g?: number | null
+          categoria?: string | null
+          created_at?: string | null
+          fibras_por_100g?: number | null
+          gorduras_por_100g?: number | null
+          id?: string
+          is_publico?: boolean | null
+          nome: string
+          nutricionista_id?: string | null
+          proteinas_por_100g?: number | null
+          quantidade_padrao?: number | null
+          unidade_medida?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          calorias_por_100g?: number | null
+          carboidratos_por_100g?: number | null
+          categoria?: string | null
+          created_at?: string | null
+          fibras_por_100g?: number | null
+          gorduras_por_100g?: number | null
+          id?: string
+          is_publico?: boolean | null
+          nome?: string
+          nutricionista_id?: string | null
+          proteinas_por_100g?: number | null
+          quantidade_padrao?: number | null
+          unidade_medida?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       aprovacoes_acesso: {
         Row: {
           aprovado_por: string | null
@@ -91,6 +142,135 @@ export type Database = {
             columns: ["paciente_id"]
             isOneToOne: false
             referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grupos_substituicao: {
+        Row: {
+          created_at: string | null
+          descricao: string | null
+          id: string
+          nome: string
+          nutricionista_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome: string
+          nutricionista_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          nutricionista_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      itens_plano_alimentar: {
+        Row: {
+          alimento_id: string
+          created_at: string | null
+          dia_semana: number
+          horario_recomendado: string | null
+          id: string
+          observacoes: string | null
+          ordem: number | null
+          plano_id: string
+          quantidade: number
+          refeicao: string
+          unidade_medida: string
+        }
+        Insert: {
+          alimento_id: string
+          created_at?: string | null
+          dia_semana: number
+          horario_recomendado?: string | null
+          id?: string
+          observacoes?: string | null
+          ordem?: number | null
+          plano_id: string
+          quantidade: number
+          refeicao: string
+          unidade_medida: string
+        }
+        Update: {
+          alimento_id?: string
+          created_at?: string | null
+          dia_semana?: number
+          horario_recomendado?: string | null
+          id?: string
+          observacoes?: string | null
+          ordem?: number | null
+          plano_id?: string
+          quantidade?: number
+          refeicao?: string
+          unidade_medida?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_plano_alimentar_alimento_id_fkey"
+            columns: ["alimento_id"]
+            isOneToOne: false
+            referencedRelation: "alimentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "itens_plano_alimentar_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "planos_alimentares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      itens_substituicao: {
+        Row: {
+          alimento_id: string
+          created_at: string | null
+          grupo_id: string
+          id: string
+          observacoes: string | null
+          quantidade_equivalente: number | null
+          unidade_medida: string | null
+        }
+        Insert: {
+          alimento_id: string
+          created_at?: string | null
+          grupo_id: string
+          id?: string
+          observacoes?: string | null
+          quantidade_equivalente?: number | null
+          unidade_medida?: string | null
+        }
+        Update: {
+          alimento_id?: string
+          created_at?: string | null
+          grupo_id?: string
+          id?: string
+          observacoes?: string | null
+          quantidade_equivalente?: number | null
+          unidade_medida?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_substituicao_alimento_id_fkey"
+            columns: ["alimento_id"]
+            isOneToOne: false
+            referencedRelation: "alimentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "itens_substituicao_grupo_id_fkey"
+            columns: ["grupo_id"]
+            isOneToOne: false
+            referencedRelation: "grupos_substituicao"
             referencedColumns: ["id"]
           },
         ]

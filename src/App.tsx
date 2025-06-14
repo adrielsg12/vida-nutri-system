@@ -8,6 +8,7 @@ import { Layout } from "@/components/Layout/Layout";
 import { Dashboard } from "@/pages/Dashboard";
 import { Pacientes } from "@/pages/Pacientes";
 import { Consultas } from "@/pages/Consultas";
+import { PlanosAlimentares } from "@/pages/PlanosAlimentares";
 import { Financeiro } from "@/pages/Financeiro";
 import { Comunicacao } from "@/pages/Comunicacao";
 import { Configuracoes } from "@/pages/Configuracoes";
