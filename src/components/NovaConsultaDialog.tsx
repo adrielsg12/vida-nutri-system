@@ -170,7 +170,7 @@ export const NovaConsultaDialog = ({ open, onClose, onSuccess }: NovaConsultaDia
     }
 
     // Monta os dados
-    const data = {
+    const dataToSend = {
       to: selectedPatient.email,
       name: selectedPatient.nome,
       date: new Date(formData.data).toLocaleDateString("pt-BR"),
@@ -182,17 +182,23 @@ export const NovaConsultaDialog = ({ open, onClose, onSuccess }: NovaConsultaDia
 
     try {
       toast({ title: "Enviando...", description: "Enviando confirmação para o paciente..." });
-      const response = await fetch("https://zychuiupgxvtdqtzodrn.functions.supabase.co/send-consultation-confirmation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+
+      // Utilize o método do supabase client
+      const { data, error } = await supabase.functions.invoke('send-consultation-confirmation', {
+        body: dataToSend,
       });
-      const result = await response.json();
-      if (result.success) {
+
+      if (error) {
+        throw new Error(error.message || "Não foi possível enviar o e-mail.");
+      }
+
+      // Sucesso (o backend sempre retorna {success: true} em caso de sucesso)
+      if (data && data.success) {
         toast({ title: "Confirmação enviada!", description: "Paciente recebeu o e-mail de confirmação." });
       } else {
-        throw new Error(result.error || "Erro desconhecido no envio.");
+        throw new Error((data && data.error) || "Não foi possível enviar o e-mail.");
       }
+
     } catch (err: any) {
       toast({ title: "Erro!", description: err.message || "Não foi possível enviar o e-mail.", variant: "destructive" });
     }
