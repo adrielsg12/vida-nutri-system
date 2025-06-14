@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Index from '@/pages/Index';
 import { Dashboard } from '@/pages/Dashboard';
 import { Pacientes } from '@/pages/Pacientes';
 import { Consultas } from '@/pages/Consultas';
@@ -19,17 +18,20 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        {/* Rotas principais dentro do Layout (menu topo) */}
+        <Route element={<Layout><Dashboard /></Layout>} path="/" />
+        <Route element={<Layout><Dashboard /></Layout>} path="/dashboard" />
+        <Route element={<Layout><Pacientes /></Layout>} path="/pacientes" />
+        <Route element={<Layout><Consultas /></Layout>} path="/consultas" />
+        <Route element={<Layout><PlanosAlimentares /></Layout>} path="/planos-alimentares" />
+        <Route element={<Layout><PesquisaAlimentos /></Layout>} path="/pesquisa-alimentos" />
+        <Route element={<Layout><Financeiro /></Layout>} path="/financeiro" />
+        <Route element={<Layout><Comunicacao /></Layout>} path="/comunicacao" />
+        <Route element={<Layout><Configuracoes /></Layout>} path="/configuracoes" />
+
+        {/* Páginas especiais SEM o menu topo */}
         <Route path="/acesso-negado" element={<AcessoNegado />} />
         <Route path="/acesso-rejeitado" element={<AcessoRejeitado />} />
-        <Route path="/pacientes" element={<Pacientes />} />
-        <Route path="/consultas" element={<Consultas />} />
-        <Route path="/planos-alimentares" element={<PlanosAlimentares />} />
-        <Route path="/pesquisa-alimentos" element={<PesquisaAlimentos />} />
-        <Route path="/financeiro" element={<Financeiro />} />
-        <Route path="/comunicacao" element={<Comunicacao />} />
-        <Route path="/configuracoes" element={<Configuracoes />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
