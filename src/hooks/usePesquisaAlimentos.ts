@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -191,29 +190,38 @@ export function usePesquisaAlimentos() {
     setFiltros(prev => ({ ...prev, [field]: value }));
   }
 
-  // Sanitiza categorias para options válidos
+  // Robustly sanitize categorias for Select
   const categorias: string[] = [
     ...new Set(
       alimentos
         .map(a => {
-          if (typeof a.categoria !== "string") return null;
-          const trimmed = a.categoria.trim();
-          return trimmed.length === 0 ? null : trimmed;
+          if (typeof a.categoria === "string") {
+            const trimmed = a.categoria.trim();
+            // Only allow non-empty, non-whitespace
+            return trimmed.length > 0 ? trimmed : null;
+          }
+          return null;
         })
-        .filter(
-          (c): c is string =>
-            typeof c === "string" && c.length > 0 && c !== ""
-        )
-    )
+        // Only allow non-empty, non-null, non-undefined strings
+        .filter((c): c is string => !!c && typeof c === "string" && c.trim().length > 0)
+    ),
   ].sort();
 
-  if (
-    categorias.some(c => c === "" || typeof c !== "string" || !c.trim())
-  ) {
+  // Debug log
+  // Find all categories that are invalid!
+  const invalidCategorias = alimentos
+    .map(a => a.categoria)
+    .filter(
+      (c) =>
+        typeof c !== "string" ||
+        !c ||
+        (typeof c === "string" && c.trim().length === 0)
+    );
+  if (invalidCategorias.length > 0) {
     // eslint-disable-next-line no-console
     console.warn(
-      "[PesquisaAlimentos] Detectado valor de categoria inválido no SelectItem:",
-      categorias
+      "[PesquisaAlimentos] Categorias inválidas detectadas e filtradas:",
+      invalidCategorias
     );
   }
 
