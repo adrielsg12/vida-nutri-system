@@ -209,14 +209,19 @@ export const PesquisaAlimentos = () => {
   const categorias = [
     ...new Set(
       alimentos
-        .map(a => typeof a.categoria === "string" ? a.categoria.trim() : "")
+        .map(a => {
+          if (typeof a.categoria !== "string") return null;
+          const trimmed = a.categoria.trim();
+          return trimmed.length === 0 ? null : trimmed;
+        })
         .filter(
-          (c): c is string => typeof c === "string" && c !== "" && c.length > 0
+          (c): c is string =>
+            typeof c === "string" && c.length > 0 && c !== ""
         )
     )
   ].sort();
 
-  // Debug para garantir que nunca aparece um valor ""
+  // Debug - log to console if any invalid values survive (should never trigger)
   if (
     categorias.some(c => c === "" || typeof c !== "string" || !c.trim())
   ) {
