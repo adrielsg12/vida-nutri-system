@@ -12,7 +12,8 @@ import NotFound from '@/pages/NotFound';
 import { AcessoNegado } from '@/pages/AcessoNegado';
 import { AcessoRejeitado } from '@/pages/AcessoRejeitado';
 import { Layout } from '@/components/Layout/Layout';
-import { PesquisaAlimentos } from '@/pages/PesquisaAlimentos';
+// FIX: use default import, not named import
+import PesquisaAlimentos from '@/pages/PesquisaAlimentos';
 
 // Importa o AuthProvider
 import { AuthProvider } from '@/hooks/useAuth';
@@ -44,3 +45,4 @@ function App() {
 }
 
 export default App;
+
