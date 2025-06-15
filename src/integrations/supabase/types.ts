@@ -546,6 +546,7 @@ export type Database = {
           nome_completo: string
           status: string | null
           telefone: string | null
+          tipo_usuario: string | null
           updated_at: string | null
         }
         Insert: {
@@ -561,6 +562,7 @@ export type Database = {
           nome_completo: string
           status?: string | null
           telefone?: string | null
+          tipo_usuario?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -576,6 +578,7 @@ export type Database = {
           nome_completo?: string
           status?: string | null
           telefone?: string | null
+          tipo_usuario?: string | null
           updated_at?: string | null
         }
         Relationships: []
