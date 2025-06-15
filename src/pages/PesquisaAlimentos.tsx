@@ -205,55 +205,6 @@ export const PesquisaAlimentos = () => {
     setFiltros(prev => ({ ...prev, [field]: value }));
   };
 
-  // Adaptação: bloco para exibir micronutrientes
-  const renderMicronutrientes = (alimento: Alimento) => (
-    <tr className="bg-gray-50">
-      <TableCell colSpan={3} className="font-semibold text-gray-700">Micronutrientes (por 100g)</TableCell>
-      <TableCell>
-        <span title="Cálcio">{(alimento.calcio ?? '-')}</span>
-      </TableCell>
-      <TableCell>
-        <span title="Ferro">{(alimento.ferro ?? '-')}</span>
-      </TableCell>
-      <TableCell>
-        <span title="Magnésio">{(alimento.magnesio ?? '-')}</span>
-      </TableCell>
-      <TableCell>
-        <span title="Sódio">{(alimento.sodio ?? '-')}</span>
-      </TableCell>
-      <TableCell>
-        <span title="Potássio">{(alimento.potassio ?? '-')}</span>
-      </TableCell>
-      <TableCell>
-        <span title="Zinco">{(alimento.zinco ?? '-')}</span>
-      </TableCell>
-    </tr>
-  );
-
-  const renderVitamins = (alimento: Alimento) => (
-    <tr className="bg-gray-50">
-      <TableCell colSpan={3} className="font-semibold text-gray-700">Vitaminas (por 100g)</TableCell>
-      <TableCell>
-        <span title="Vitamina C">{(alimento.vitamina_c ?? '-')}</span>
-      </TableCell>
-      <TableCell>
-        <span title="Tiamina">{(alimento.tiamina ?? '-')}</span>
-      </TableCell>
-      <TableCell>
-        <span title="Riboflavina">{(alimento.riboflavina ?? '-')}</span>
-      </TableCell>
-      <TableCell>
-        <span title="Piridoxina">{(alimento.piridoxina ?? '-')}</span>
-      </TableCell>
-      <TableCell>
-        <span title="Niacina">{(alimento.niacina ?? '-')}</span>
-      </TableCell>
-      <TableCell>
-        <span title="Vitamina A (RE)">{(alimento.re ?? '-')}</span>
-      </TableCell>
-    </tr>
-  );
-
   // Sanitize categorias: only use non-empty, non-falsy, unique categories for SelectItem options
   const categorias = [
     ...new Set(
