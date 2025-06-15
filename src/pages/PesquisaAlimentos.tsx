@@ -209,10 +209,23 @@ export const PesquisaAlimentos = () => {
   const categorias = [
     ...new Set(
       alimentos
-        .map(a => a.categoria)
-        .filter((c): c is string => typeof c === "string" && c.trim() !== "")
+        .map(a => typeof a.categoria === "string" ? a.categoria.trim() : "")
+        .filter(
+          (c): c is string => typeof c === "string" && c !== "" && c.length > 0
+        )
     )
   ].sort();
+
+  // Debug para garantir que nunca aparece um valor ""
+  if (
+    categorias.some(c => c === "" || typeof c !== "string" || !c.trim())
+  ) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[PesquisaAlimentos] Detectado valor de categoria inválido no SelectItem:",
+      categorias
+    );
+  }
 
   // Render
 
