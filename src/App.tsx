@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Dashboard } from '@/pages/Dashboard';
@@ -17,12 +16,16 @@ import PesquisaAlimentos from '@/pages/PesquisaAlimentos';
 
 // Importa o AuthProvider
 import { AuthProvider } from '@/hooks/useAuth';
+import Auth from '@/pages/Auth';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
+          {/* Adiciona a rota de autenticação */}
+          <Route path="/auth" element={<Auth />} />
+
           {/* Rotas principais dentro do Layout (menu topo) */}
           <Route element={<Layout><Dashboard /></Layout>} path="/" />
           <Route element={<Layout><Dashboard /></Layout>} path="/dashboard" />
@@ -45,4 +48,3 @@ function App() {
 }
 
 export default App;
-
