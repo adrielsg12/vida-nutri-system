@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -73,7 +72,7 @@ export const PlanoAlimentarTable: React.FC<PlanoAlimentarTableProps> = ({
                 items.map((item, idxItem) => {
                   const idx = itens_plano_alimentar.findIndex(i => i === item);
                   return (
-                    <TableRow key={idx}>
+                    <TableRow key={`${diaIdx}-${idxItem}`}>
                       <TableCell>
                         <span className="font-semibold">{dia}</span>
                       </TableCell>
@@ -163,7 +162,7 @@ export const PlanoAlimentarTable: React.FC<PlanoAlimentarTableProps> = ({
                 })
               )}
             </React.Fragment>
-          )
+          );
         })}
       </TableBody>
     </Table>

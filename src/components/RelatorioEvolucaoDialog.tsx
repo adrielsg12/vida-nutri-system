@@ -10,11 +10,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, TrendingDown, Minus, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { SimpleEvolutionChart } from '@/components/Reports/SimpleEvolutionChart';
 
 interface RelatorioEvolucaoDialogProps {
   open: boolean;
@@ -169,85 +171,133 @@ export const RelatorioEvolucaoDialog = ({
             <p>Este paciente ainda não possui consultas registradas.</p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* Resumo Geral */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Resumo da Evolução</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {campos.map((campo) => {
-                    const valores = registros.map(r => r[campo.key as keyof RegistroConsulta] as number | null);
-                    const valoresValidos = valores.filter((v): v is number => v !== null);
-                    const tendencia = calcularTendencia(valores);
-                    const diferenca = formatarDiferenca(valores);
-                    
-                    if (valoresValidos.length === 0) return null;
-
-                    const valorAtual = valoresValidos[valoresValidos.length - 1];
-
-                    return (
-                      <div key={campo.key} className="p-3 border rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-600">{campo.label}</span>
-                          {getTendenciaIcon(tendencia)}
-                        </div>
-                        <div className="mt-1">
-                          <span className="text-lg font-bold">{valorAtual.toFixed(1)}</span>
-                          <span className="text-sm text-gray-500 ml-1">{campo.unit}</span>
-                        </div>
-                        {diferenca && (
-                          <div className={`text-sm ${getTendenciaColor(tendencia)}`}>
-                            {diferenca} {campo.unit}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Histórico Detalhado */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Histórico de Consultas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {registros.slice().reverse().map((registro, index) => (
-                    <div key={registro.id} className="p-4 border rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-medium">
-                          Consulta {registros.length - index}
-                        </h4>
-                        <Badge variant="outline">
-                          {format(new Date(registro.created_at), 'dd/MM/yyyy', { locale: ptBR })}
-                        </Badge>
-                      </div>
+          <Tabs defaultValue="resumo" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="resumo">Resumo</TabsTrigger>
+              <TabsTrigger value="graficos">Gráficos</TabsTrigger>
+              <TabsTrigger value="historico">Histórico</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="resumo" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Resumo da Evolução</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {campos.map((campo) => {
+                      const valores = registros.map(r => r[campo.key as keyof RegistroConsulta] as number | null);
+                      const valoresValidos = valores.filter((v): v is number => v !== null);
+                      const tendencia = calcularTendencia(valores);
+                      const diferenca = formatarDiferenca(valores);
                       
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-sm">
-                        {campos.map((campo) => {
-                          const valor = registro[campo.key as keyof RegistroConsulta] as number | null;
-                          if (valor === null) return null;
-                          
-                          return (
-                            <div key={campo.key}>
-                              <span className="text-gray-600">{campo.label}:</span>
-                              <span className="ml-2 font-medium">
-                                {valor.toFixed(1)} {campo.unit}
-                              </span>
+                      if (valoresValidos.length === 0) return null;
+
+                      const valorAtual = valoresValidos[valoresValidos.length - 1];
+
+                      return (
+                        <div key={campo.key} className="p-3 border rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-600">{campo.label}</span>
+                            {getTendenciaIcon(tendencia)}
+                          </div>
+                          <div className="mt-1">
+                            <span className="text-lg font-bold">{valorAtual.toFixed(1)}</span>
+                            <span className="text-sm text-gray-500 ml-1">{campo.unit}</span>
+                          </div>
+                          {diferenca && (
+                            <div className={`text-sm ${getTendenciaColor(tendencia)}`}>
+                              {diferenca} {campo.unit}
                             </div>
-                          );
-                        })}
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="graficos" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardContent className="pt-6">
+                    <SimpleEvolutionChart
+                      registros={registros}
+                      metrica="percentual_gordura"
+                      titulo="Percentual de Gordura"
+                      unidade="%"
+                      cor="#ef4444"
+                    />
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="pt-6">
+                    <SimpleEvolutionChart
+                      registros={registros}
+                      metrica="peso"
+                      titulo="Peso"
+                      unidade="kg"
+                      cor="#3b82f6"
+                    />
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="pt-6">
+                    <SimpleEvolutionChart
+                      registros={registros}
+                      metrica="massa_muscular"
+                      titulo="Massa Muscular"
+                      unidade="kg"
+                      cor="#10b981"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="historico" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Histórico de Consultas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {registros.slice().reverse().map((registro, index) => (
+                      <div key={registro.id} className="p-4 border rounded-lg">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-medium">
+                            Consulta {registros.length - index}
+                          </h4>
+                          <Badge variant="outline">
+                            {format(new Date(registro.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-sm">
+                          {campos.map((campo) => {
+                            const valor = registro[campo.key as keyof RegistroConsulta] as number | null;
+                            if (valor === null) return null;
+                            
+                            return (
+                              <div key={campo.key}>
+                                <span className="text-gray-600">{campo.label}:</span>
+                                <span className="ml-2 font-medium">
+                                  {valor.toFixed(1)} {campo.unit}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         )}
       </DialogContent>
     </Dialog>

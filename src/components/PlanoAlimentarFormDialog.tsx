@@ -10,7 +10,9 @@ import { useAlimentosList } from "@/hooks/useAlimentosList";
 import { useToast } from "@/hooks/use-toast";
 import { usePlanoAlimentarForm, DIAS } from "@/hooks/usePlanoAlimentarForm";
 import { PlanoAlimentarTable } from "./plano-alimentar/PlanoAlimentarTable";
+import { DayBasedPlanoEditor } from "./plano-alimentar/DayBasedPlanoEditor";
 import { WhatsappButton } from "./plano-alimentar/WhatsappButton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 
 // Types
@@ -225,16 +227,37 @@ export const PlanoAlimentarFormDialog = ({
               </Button>
             </div>
           </div>
-          <PlanoAlimentarTable
-            alimentos={alimentos}
-            alimentoSearch={alimentoSearch}
-            setAlimentoSearch={setAlimentoSearch}
-            itens_plano_alimentar={formData.itens_plano_alimentar}
-            getItemsByDay={getItemsByDay}
-            handleItemChange={handleItemChange}
-            handleAddItem={handleAddItem}
-            handleRemoveItem={handleRemoveItem}
-          />
+          
+          <Tabs defaultValue="day-editor" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="day-editor">Edição por Dia</TabsTrigger>
+              <TabsTrigger value="table-view">Visualização em Tabela</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="day-editor">
+              <DayBasedPlanoEditor
+                alimentos={alimentos}
+                itens_plano_alimentar={formData.itens_plano_alimentar}
+                getItemsByDay={getItemsByDay}
+                handleItemChange={handleItemChange}
+                handleAddItem={handleAddItem}
+                handleRemoveItem={handleRemoveItem}
+              />
+            </TabsContent>
+            
+            <TabsContent value="table-view">
+              <PlanoAlimentarTable
+                alimentos={alimentos}
+                alimentoSearch={alimentoSearch}
+                setAlimentoSearch={setAlimentoSearch}
+                itens_plano_alimentar={formData.itens_plano_alimentar}
+                getItemsByDay={getItemsByDay}
+                handleItemChange={handleItemChange}
+                handleAddItem={handleAddItem}
+                handleRemoveItem={handleRemoveItem}
+              />
+            </TabsContent>
+          </Tabs>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
             <Button type="submit" disabled={saving}>
