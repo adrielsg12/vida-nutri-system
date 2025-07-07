@@ -7,9 +7,13 @@ export const REFEICOES = [
   "Café da manhã",
   "Lanche da manhã",
   "Almoço",
-  "Lanche da tarde",
+  "Lanche da tarde", 
   "Jantar",
-  "Ceia"
+  "Ceia",
+  "Lanche da noite",
+  "Pré-treino",
+  "Pós-treino",
+  "Colação"
 ];
 
 export function usePlanoAlimentarForm(plano: PlanoFull) {

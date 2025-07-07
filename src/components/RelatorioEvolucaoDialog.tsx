@@ -24,6 +24,20 @@ interface RelatorioEvolucaoDialogProps {
   paciente: {
     id: string;
     nome: string;
+    cpf?: string;
+    data_nascimento?: string;
+    sexo?: string;
+    telefone?: string;
+    email?: string;
+    endereco?: string;
+    profissao?: string;
+    objetivo?: string;
+    historico_clinico?: string;
+    medicamentos?: string;
+    habitos_alimentares?: string;
+    alergias_intolerancia?: string;
+    rotina?: string;
+    anotacoes_privadas?: string;
   };
 }
 
@@ -171,12 +185,114 @@ export const RelatorioEvolucaoDialog = ({
             <p>Este paciente ainda não possui consultas registradas.</p>
           </div>
         ) : (
-          <Tabs defaultValue="resumo" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs defaultValue="anamnese" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="anamnese">Anamnese</TabsTrigger>
               <TabsTrigger value="resumo">Resumo</TabsTrigger>
               <TabsTrigger value="graficos">Gráficos</TabsTrigger>
               <TabsTrigger value="historico">Histórico</TabsTrigger>
             </TabsList>
+            
+            <TabsContent value="anamnese" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Dados Pessoais */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Dados Pessoais</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-600">Nome:</span>
+                        <p className="mt-1">{paciente.nome}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">CPF:</span>
+                        <p className="mt-1">{paciente.cpf || 'Não informado'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Data de Nascimento:</span>
+                        <p className="mt-1">{paciente.data_nascimento ? format(new Date(paciente.data_nascimento), 'dd/MM/yyyy', { locale: ptBR }) : 'Não informado'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Sexo:</span>
+                        <p className="mt-1">{paciente.sexo || 'Não informado'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Telefone:</span>
+                        <p className="mt-1">{paciente.telefone || 'Não informado'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Email:</span>
+                        <p className="mt-1">{paciente.email || 'Não informado'}</p>
+                      </div>
+                    </div>
+                    <div className="text-sm">
+                      <span className="font-medium text-gray-600">Endereço:</span>
+                      <p className="mt-1">{paciente.endereco || 'Não informado'}</p>
+                    </div>
+                    <div className="text-sm">
+                      <span className="font-medium text-gray-600">Profissão:</span>
+                      <p className="mt-1">{paciente.profissao || 'Não informado'}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Histórico Clínico */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Histórico Clínico</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <span className="font-medium text-gray-600">Objetivo:</span>
+                      <p className="mt-1 p-3 bg-gray-50 rounded-md text-sm">{paciente.objetivo || 'Não informado'}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Histórico Clínico:</span>
+                      <p className="mt-1 p-3 bg-gray-50 rounded-md text-sm">{paciente.historico_clinico || 'Não informado'}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Medicamentos:</span>
+                      <p className="mt-1 p-3 bg-gray-50 rounded-md text-sm">{paciente.medicamentos || 'Não informado'}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Hábitos Alimentares */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Hábitos e Rotina</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <span className="font-medium text-gray-600">Hábitos Alimentares:</span>
+                      <p className="mt-1 p-3 bg-gray-50 rounded-md text-sm">{paciente.habitos_alimentares || 'Não informado'}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Alergias/Intolerâncias:</span>
+                      <p className="mt-1 p-3 bg-gray-50 rounded-md text-sm">{paciente.alergias_intolerancia || 'Não informado'}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Rotina:</span>
+                      <p className="mt-1 p-3 bg-gray-50 rounded-md text-sm">{paciente.rotina || 'Não informado'}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Anotações Privadas */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Anotações Privadas</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                      <p className="text-sm">{paciente.anotacoes_privadas || 'Nenhuma anotação privada registrada'}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
             
             <TabsContent value="resumo" className="space-y-6">
               <Card>

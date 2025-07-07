@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChefHat } from "lucide-react";
@@ -48,7 +47,7 @@ export const PesquisaAlimentosPage = () => {
             onFiltroChange={handleFiltroChange}
             onLimparFiltros={limparFiltros}
             onOrdenarPor={setOrdenarPor}
-            onOrdemAsc={() => setOrdemAsc((v: boolean) => !v)}
+            onOrdemAsc={() => setOrdemAsc(!ordemAsc)}
             onAplicarFiltros={aplicarFiltros}
           />
         </CardContent>
