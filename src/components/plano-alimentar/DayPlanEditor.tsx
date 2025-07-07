@@ -64,9 +64,8 @@ export const DayPlanEditor: React.FC<DayPlanEditorProps> = ({
             <p className="text-gray-500 text-sm">Nenhuma refeição cadastrada para este dia.</p>
           ) : (
             <div className="space-y-2">
-              {REFEICOES.map((refeicao) => {
+              {Array.from(new Set(items.map(item => item.refeicao))).map((refeicao) => {
                 const refeicaoItems = items.filter(item => item.refeicao === refeicao);
-                if (refeicaoItems.length === 0) return null;
                 
                 return (
                   <div key={refeicao} className="border rounded-lg p-3">
@@ -145,19 +144,12 @@ export const DayPlanEditor: React.FC<DayPlanEditorProps> = ({
                       <Label htmlFor={`refeicao-${idx}`} className="text-sm font-medium">
                         Refeição
                       </Label>
-                      <Select
+                      <Input
+                        id={`refeicao-${idx}`}
                         value={item.refeicao}
-                        onValueChange={v => onItemChange(idx, "refeicao", v)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a refeição" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {REFEICOES.map((r) => (
-                            <SelectItem key={r} value={r}>{r}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        onChange={e => onItemChange(idx, "refeicao", e.target.value)}
+                        placeholder="Nome da refeição (ex: Café da manhã, Lanche...)"
+                      />
                     </div>
                     
                     <div>

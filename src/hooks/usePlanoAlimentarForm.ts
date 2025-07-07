@@ -44,7 +44,7 @@ export function usePlanoAlimentarForm(plano: PlanoFull) {
         ...prev.itens_plano_alimentar,
         {
           dia_semana: 0,
-          refeicao: REFEICOES[0],
+          refeicao: "",
           quantidade: 100,
           unidade_medida: 'g',
           alimento_id: "",
