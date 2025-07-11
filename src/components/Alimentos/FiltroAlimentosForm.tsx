@@ -53,7 +53,7 @@ export function FiltroAlimentosForm({
               <SelectValue placeholder="Todas as categorias" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as categorias</SelectItem>
+              <SelectItem value="todas">Todas as categorias</SelectItem>
               {categorias.map((c) =>
                 c ? (
                   <SelectItem value={c} key={c}>

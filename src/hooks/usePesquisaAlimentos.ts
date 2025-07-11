@@ -50,7 +50,7 @@ export interface FiltrosAlimento {
 
 export const defaultFiltros: FiltrosAlimento = {
   descricao: "",
-  categoria: "",
+  categoria: "todas",
   saturadosMin: "",
   saturadosMax: "",
   monoinsaturadosMin: "",
@@ -108,7 +108,7 @@ export function usePesquisaAlimentos() {
         (a["Descrição dos alimentos"] || "").toLowerCase().includes(filtros.descricao.toLowerCase())
       );
     }
-    if (filtros.categoria) {
+    if (filtros.categoria && filtros.categoria !== "todas") {
       filtrados = filtrados.filter(a =>
         a["Categoria do alimento"] === filtros.categoria
       );
