@@ -34,14 +34,14 @@ export function FiltroAlimentosForm({
     <div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
         <div>
-          <Label htmlFor="nome">Nome do Alimento</Label>
+          <Label htmlFor="descricao">Descrição do Alimento</Label>
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
             <Input
-              id="nome"
-              placeholder="Buscar por nome..."
-              value={filtros.nome}
-              onChange={(e) => onFiltroChange('nome', e.target.value)}
+              id="descricao"
+              placeholder="Buscar por descrição..."
+              value={filtros.descricao}
+              onChange={(e) => onFiltroChange('descricao', e.target.value)}
               className="pl-10"
             />
           </div>
@@ -65,73 +65,56 @@ export function FiltroAlimentosForm({
           </Select>
         </div>
         <div>
-          <Label htmlFor="proteinaMin">Proteína (g) Mín</Label>
+          <Label htmlFor="saturadosMin">Saturados (g) Mín</Label>
           <Input
-            id="proteinaMin"
+            id="saturadosMin"
             type="number"
-            value={filtros.proteinaMin}
-            onChange={(e) => onFiltroChange('proteinaMin', e.target.value)}
+            value={filtros.saturadosMin}
+            onChange={(e) => onFiltroChange('saturadosMin', e.target.value)}
           />
         </div>
         <div>
-          <Label htmlFor="proteinaMax">Proteína (g) Máx</Label>
+          <Label htmlFor="saturadosMax">Saturados (g) Máx</Label>
           <Input
-            id="proteinaMax"
+            id="saturadosMax"
             type="number"
-            value={filtros.proteinaMax}
-            onChange={(e) => onFiltroChange('proteinaMax', e.target.value)}
+            value={filtros.saturadosMax}
+            onChange={(e) => onFiltroChange('saturadosMax', e.target.value)}
           />
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
         <div>
-          <Label>Lipídeos (g)</Label>
+          <Label>Mono-insaturados (g)</Label>
           <div className="flex gap-2">
             <Input
               type="number"
               placeholder="Mín"
-              value={filtros.lipideosMin}
-              onChange={(e) => onFiltroChange('lipideosMin', e.target.value)}
+              value={filtros.monoinsaturadosMin}
+              onChange={(e) => onFiltroChange('monoinsaturadosMin', e.target.value)}
             />
             <Input
               type="number"
               placeholder="Máx"
-              value={filtros.lipideosMax}
-              onChange={(e) => onFiltroChange('lipideosMax', e.target.value)}
+              value={filtros.monoinsaturadosMax}
+              onChange={(e) => onFiltroChange('monoinsaturadosMax', e.target.value)}
             />
           </div>
         </div>
         <div>
-          <Label>Carboidrato (g)</Label>
+          <Label>Poli-insaturados (g)</Label>
           <div className="flex gap-2">
             <Input
               type="number"
               placeholder="Mín"
-              value={filtros.carboidratoMin}
-              onChange={(e) => onFiltroChange('carboidratoMin', e.target.value)}
+              value={filtros.poliinsaturadosMin}
+              onChange={(e) => onFiltroChange('poliinsaturadosMin', e.target.value)}
             />
             <Input
               type="number"
               placeholder="Máx"
-              value={filtros.carboidratoMax}
-              onChange={(e) => onFiltroChange('carboidratoMax', e.target.value)}
-            />
-          </div>
-        </div>
-        <div>
-          <Label>Energia (kcal)</Label>
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              placeholder="Mín"
-              value={filtros.energiaKcalMin}
-              onChange={(e) => onFiltroChange('energiaKcalMin', e.target.value)}
-            />
-            <Input
-              type="number"
-              placeholder="Máx"
-              value={filtros.energiaKcalMax}
-              onChange={(e) => onFiltroChange('energiaKcalMax', e.target.value)}
+              value={filtros.poliinsaturadosMax}
+              onChange={(e) => onFiltroChange('poliinsaturadosMax', e.target.value)}
             />
           </div>
         </div>
@@ -143,11 +126,11 @@ export function FiltroAlimentosForm({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="nome">Nome</SelectItem>
-                <SelectItem value="proteina">Mais Proteína</SelectItem>
-                <SelectItem value="lipideos">Mais Gordura</SelectItem>
-                <SelectItem value="carboidrato">Mais Carboidrato</SelectItem>
-                <SelectItem value="energia_kcal">Mais Calorias</SelectItem>
+                <SelectItem value="Descrição dos alimentos">Descrição</SelectItem>
+                <SelectItem value="Categoria do alimento">Categoria</SelectItem>
+                <SelectItem value="Saturados (g)">Saturados</SelectItem>
+                <SelectItem value="Mono-insaturados (g)">Mono-insaturados</SelectItem>
+                <SelectItem value="Poli-insaturados (g)">Poli-insaturados</SelectItem>
               </SelectContent>
             </Select>
             <Button

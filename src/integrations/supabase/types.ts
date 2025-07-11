@@ -487,6 +487,90 @@ export type Database = {
           },
         ]
       }
+      Pesquisa_de_alimentos: {
+        Row: {
+          "12:0 (g)": string | null
+          "14:0 (g)": string | null
+          "14:1 (g)": string | null
+          "16:0 (g)": string | null
+          "16:1 (g)": string | null
+          "18:0 (g)": string | null
+          "18:1 (g)": string | null
+          "18:1t (g)": string | null
+          "18:2 n-6 (g)": string | null
+          "18:2t (g)": string | null
+          "18:3 n-3 (g)": string | null
+          "20:0 (g)": string | null
+          "20:1 (g)": string | null
+          "20:4 (g)": string | null
+          "20:5 (g)": string | null
+          "22:0 (g)": string | null
+          "22:5 (g)": string | null
+          "22:6 (g)": string | null
+          "24:0 (g)": string | null
+          "Categoria do alimento": string | null
+          "Descrição dos alimentos": string | null
+          "Mono-insaturados (g)": string | null
+          "Número do Alimento": number | null
+          "Poli-insaturados (g)": string | null
+          "Saturados (g)": string | null
+        }
+        Insert: {
+          "12:0 (g)"?: string | null
+          "14:0 (g)"?: string | null
+          "14:1 (g)"?: string | null
+          "16:0 (g)"?: string | null
+          "16:1 (g)"?: string | null
+          "18:0 (g)"?: string | null
+          "18:1 (g)"?: string | null
+          "18:1t (g)"?: string | null
+          "18:2 n-6 (g)"?: string | null
+          "18:2t (g)"?: string | null
+          "18:3 n-3 (g)"?: string | null
+          "20:0 (g)"?: string | null
+          "20:1 (g)"?: string | null
+          "20:4 (g)"?: string | null
+          "20:5 (g)"?: string | null
+          "22:0 (g)"?: string | null
+          "22:5 (g)"?: string | null
+          "22:6 (g)"?: string | null
+          "24:0 (g)"?: string | null
+          "Categoria do alimento"?: string | null
+          "Descrição dos alimentos"?: string | null
+          "Mono-insaturados (g)"?: string | null
+          "Número do Alimento"?: number | null
+          "Poli-insaturados (g)"?: string | null
+          "Saturados (g)"?: string | null
+        }
+        Update: {
+          "12:0 (g)"?: string | null
+          "14:0 (g)"?: string | null
+          "14:1 (g)"?: string | null
+          "16:0 (g)"?: string | null
+          "16:1 (g)"?: string | null
+          "18:0 (g)"?: string | null
+          "18:1 (g)"?: string | null
+          "18:1t (g)"?: string | null
+          "18:2 n-6 (g)"?: string | null
+          "18:2t (g)"?: string | null
+          "18:3 n-3 (g)"?: string | null
+          "20:0 (g)"?: string | null
+          "20:1 (g)"?: string | null
+          "20:4 (g)"?: string | null
+          "20:5 (g)"?: string | null
+          "22:0 (g)"?: string | null
+          "22:5 (g)"?: string | null
+          "22:6 (g)"?: string | null
+          "24:0 (g)"?: string | null
+          "Categoria do alimento"?: string | null
+          "Descrição dos alimentos"?: string | null
+          "Mono-insaturados (g)"?: string | null
+          "Número do Alimento"?: number | null
+          "Poli-insaturados (g)"?: string | null
+          "Saturados (g)"?: string | null
+        }
+        Relationships: []
+      }
       planos_alimentares: {
         Row: {
           created_at: string | null

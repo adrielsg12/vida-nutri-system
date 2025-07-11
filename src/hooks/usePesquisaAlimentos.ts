@@ -2,88 +2,69 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-export interface Alimento {
-  id: string;
-  nome: string;
-  categoria: string;
-  unidade_medida?: string | null;
-  umidade?: number | null;
-  energia_kcal?: number | null;
-  energia_kj?: number | null;
-  proteina?: number | null;
-  lipideos?: number | null;
-  colesterol?: number | null;
-  carboidrato?: number | null;
-  fibra_alimentar?: number | null;
-  cinzas?: number | null;
-  calcio?: number | null;
-  magnesio?: number | null;
-  manganes?: number | null;
-  fosforo?: number | null;
-  ferro?: number | null;
-  sodio?: number | null;
-  potassio?: number | null;
-  cobre?: number | null;
-  zinco?: number | null;
-  retinol?: number | null;
-  re?: number | null;
-  rae?: number | null;
-  tiamina?: number | null;
-  riboflavina?: number | null;
-  piridoxina?: number | null;
-  niacina?: number | null;
-  vitamina_c?: number | null;
-  categoria_taco?: string | null;
-  codigo_taco?: string | null;
-  calorias_por_100g?: number | null;
-  proteinas_por_100g?: number | null;
-  carboidratos_por_100g?: number | null;
-  gorduras_por_100g?: number | null;
-  fibras_por_100g?: number | null;
+export interface AlimentoPesquisa {
+  "Número do Alimento"?: number | null;
+  "Categoria do alimento"?: string | null;
+  "Descrição dos alimentos"?: string | null;
+  "Saturados (g)"?: string | null;
+  "Mono-insaturados (g)"?: string | null;
+  "Poli-insaturados (g)"?: string | null;
+  "12:0 (g)"?: string | null;
+  "14:0 (g)"?: string | null;
+  "16:0 (g)"?: string | null;
+  "18:0 (g)"?: string | null;
+  "20:0 (g)"?: string | null;
+  "22:0 (g)"?: string | null;
+  "24:0 (g)"?: string | null;
+  "14:1 (g)"?: string | null;
+  "16:1 (g)"?: string | null;
+  "18:1 (g)"?: string | null;
+  "20:1 (g)"?: string | null;
+  "18:2 n-6 (g)"?: string | null;
+  "18:3 n-3 (g)"?: string | null;
+  "20:4 (g)"?: string | null;
+  "20:5 (g)"?: string | null;
+  "22:5 (g)"?: string | null;
+  "22:6 (g)"?: string | null;
+  "18:1t (g)"?: string | null;
+  "18:2t (g)"?: string | null;
 }
 
 export type OrderableField =
-  | 'nome'
-  | 'proteina'
-  | 'lipideos'
-  | 'carboidrato'
-  | 'energia_kcal'
-  | 'fibras_por_100g'
-  | 'calorias_por_100g'
-  | 'colesterol';
+  | 'Descrição dos alimentos'
+  | 'Categoria do alimento'
+  | 'Saturados (g)'
+  | 'Mono-insaturados (g)'
+  | 'Poli-insaturados (g)';
 
 export interface FiltrosAlimento {
-  nome: string;
+  descricao: string;
   categoria: string;
-  proteinaMin: string;
-  proteinaMax: string;
-  lipideosMin: string;
-  lipideosMax: string;
-  carboidratoMin: string;
-  carboidratoMax: string;
-  energiaKcalMin: string;
-  energiaKcalMax: string;
+  saturadosMin: string;
+  saturadosMax: string;
+  monoinsaturadosMin: string;
+  monoinsaturadosMax: string;
+  poliinsaturadosMin: string;
+  poliinsaturadosMax: string;
 }
 
 export const defaultFiltros: FiltrosAlimento = {
-  nome: "",
+  descricao: "",
   categoria: "",
-  proteinaMin: "",
-  proteinaMax: "",
-  lipideosMin: "",
-  lipideosMax: "",
-  carboidratoMin: "",
-  carboidratoMax: "",
-  energiaKcalMin: "",
-  energiaKcalMax: "",
+  saturadosMin: "",
+  saturadosMax: "",
+  monoinsaturadosMin: "",
+  monoinsaturadosMax: "",
+  poliinsaturadosMin: "",
+  poliinsaturadosMax: "",
 };
 
 export function usePesquisaAlimentos() {
-  const [alimentos, setAlimentos] = useState<Alimento[]>([]);
-  const [alimentosFiltrados, setAlimentosFiltrados] = useState<Alimento[]>([]);
+  const [alimentos, setAlimentos] = useState<AlimentoPesquisa[]>([]);
+  const [alimentosFiltrados, setAlimentosFiltrados] = useState<AlimentoPesquisa[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtros, setFiltros] = useState<FiltrosAlimento>(defaultFiltros);
-  const [ordenarPor, setOrdenarPor] = useState<OrderableField>("nome");
+  const [ordenarPor, setOrdenarPor] = useState<OrderableField>("Descrição dos alimentos");
   const [ordemAsc, setOrdemAsc] = useState(true);
 
   const { toast } = useToast();
@@ -93,9 +74,9 @@ export function usePesquisaAlimentos() {
       try {
         setLoading(true);
         const { data, error } = await supabase
-          .from('alimentos')
+          .from('Pesquisa_de_alimentos')
           .select(`*`)
-          .order('nome');
+          .order('"Descrição dos alimentos"');
         if (error) throw error;
         setAlimentos(data || []);
         setAlimentosFiltrados(data || []);
@@ -122,61 +103,57 @@ export function usePesquisaAlimentos() {
   function aplicarFiltros() {
     let filtrados = alimentos;
 
-    if (filtros.nome) {
+    if (filtros.descricao) {
       filtrados = filtrados.filter(a =>
-        a.nome.toLowerCase().includes(filtros.nome.toLowerCase())
+        (a["Descrição dos alimentos"] || "").toLowerCase().includes(filtros.descricao.toLowerCase())
       );
     }
     if (filtros.categoria) {
       filtrados = filtrados.filter(a =>
-        a.categoria === filtros.categoria
+        a["Categoria do alimento"] === filtros.categoria
       );
     }
-    if (filtros.proteinaMin) {
-      filtrados = filtrados.filter(a =>
-        (a.proteina ?? 0) >= Number(filtros.proteinaMin)
-      );
+    if (filtros.saturadosMin) {
+      filtrados = filtrados.filter(a => {
+        const valor = parseFloat(a["Saturados (g)"] || "0");
+        return valor >= Number(filtros.saturadosMin);
+      });
     }
-    if (filtros.proteinaMax) {
-      filtrados = filtrados.filter(a =>
-        (a.proteina ?? 0) <= Number(filtros.proteinaMax)
-      );
+    if (filtros.saturadosMax) {
+      filtrados = filtrados.filter(a => {
+        const valor = parseFloat(a["Saturados (g)"] || "0");
+        return valor <= Number(filtros.saturadosMax);
+      });
     }
-    if (filtros.lipideosMin) {
-      filtrados = filtrados.filter(a =>
-        (a.lipideos ?? 0) >= Number(filtros.lipideosMin)
-      );
+    if (filtros.monoinsaturadosMin) {
+      filtrados = filtrados.filter(a => {
+        const valor = parseFloat(a["Mono-insaturados (g)"] || "0");
+        return valor >= Number(filtros.monoinsaturadosMin);
+      });
     }
-    if (filtros.lipideosMax) {
-      filtrados = filtrados.filter(a =>
-        (a.lipideos ?? 0) <= Number(filtros.lipideosMax)
-      );
+    if (filtros.monoinsaturadosMax) {
+      filtrados = filtrados.filter(a => {
+        const valor = parseFloat(a["Mono-insaturados (g)"] || "0");
+        return valor <= Number(filtros.monoinsaturadosMax);
+      });
     }
-    if (filtros.carboidratoMin) {
-      filtrados = filtrados.filter(a =>
-        (a.carboidrato ?? 0) >= Number(filtros.carboidratoMin)
-      );
+    if (filtros.poliinsaturadosMin) {
+      filtrados = filtrados.filter(a => {
+        const valor = parseFloat(a["Poli-insaturados (g)"] || "0");
+        return valor >= Number(filtros.poliinsaturadosMin);
+      });
     }
-    if (filtros.carboidratoMax) {
-      filtrados = filtrados.filter(a =>
-        (a.carboidrato ?? 0) <= Number(filtros.carboidratoMax)
-      );
-    }
-    if (filtros.energiaKcalMin) {
-      filtrados = filtrados.filter(a =>
-        (a.energia_kcal ?? 0) >= Number(filtros.energiaKcalMin)
-      );
-    }
-    if (filtros.energiaKcalMax) {
-      filtrados = filtrados.filter(a =>
-        (a.energia_kcal ?? 0) <= Number(filtros.energiaKcalMax)
-      );
+    if (filtros.poliinsaturadosMax) {
+      filtrados = filtrados.filter(a => {
+        const valor = parseFloat(a["Poli-insaturados (g)"] || "0");
+        return valor <= Number(filtros.poliinsaturadosMax);
+      });
     }
 
     filtrados = [...filtrados].sort((a, b) => {
-      const fieldA = (a[ordenarPor] ?? 0) as number;
-      const fieldB = (b[ordenarPor] ?? 0) as number;
-      return ordemAsc ? fieldA - fieldB : fieldB - fieldA;
+      const fieldA = String(a[ordenarPor] ?? "");
+      const fieldB = String(b[ordenarPor] ?? "");
+      return ordemAsc ? fieldA.localeCompare(fieldB) : fieldB.localeCompare(fieldA);
     });
 
     setAlimentosFiltrados(filtrados);
@@ -195,8 +172,9 @@ export function usePesquisaAlimentos() {
     ...new Set(
       alimentos
         .map(a => {
-          if (typeof a.categoria === "string") {
-            const trimmed = a.categoria.trim();
+          const categoria = a["Categoria do alimento"];
+          if (typeof categoria === "string") {
+            const trimmed = categoria.trim();
             // Only allow non-empty, non-whitespace
             return trimmed.length > 0 ? trimmed : null;
           }
@@ -206,24 +184,6 @@ export function usePesquisaAlimentos() {
         .filter((c): c is string => !!c && typeof c === "string" && c.trim().length > 0)
     ),
   ].sort();
-
-  // Debug log
-  // Find all categories that are invalid!
-  const invalidCategorias = alimentos
-    .map(a => a.categoria)
-    .filter(
-      (c) =>
-        typeof c !== "string" ||
-        !c ||
-        (typeof c === "string" && c.trim().length === 0)
-    );
-  if (invalidCategorias.length > 0) {
-    // eslint-disable-next-line no-console
-    console.warn(
-      "[PesquisaAlimentos] Categorias inválidas detectadas e filtradas:",
-      invalidCategorias
-    );
-  }
 
   return {
     alimentosFiltrados,
